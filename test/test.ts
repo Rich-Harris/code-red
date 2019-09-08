@@ -92,6 +92,49 @@ describe('codered', () => {
 				}
 			});
 		});
+
+		it('preserves @-prefixed names', () => {
+			const node = x`@foo(bar)`;
+
+			assert.deepEqual(node, {
+				type: 'CallExpression',
+				callee: { type: 'Identifier', name: '@foo' },
+				arguments: [
+					{ type: 'Identifier', name: 'bar' }
+				]
+			});
+		});
+
+		it('preserves #-prefixed names', () => {
+			const node = x`
+				function foo(#bar) {
+					return #bar * bar;
+				}
+			`;
+
+			assert.deepEqual(node, {
+				type: 'FunctionExpression',
+				id: { type: 'Identifier', name: 'foo' },
+				expression: false,
+				generator: false,
+				async: false,
+				params: [
+					{ type: 'Identifier', name: '#bar' }
+				],
+				body: {
+					type: 'BlockStatement',
+					body: [{
+						type: 'ReturnStatement',
+						argument: {
+							type: 'BinaryExpression',
+							left: { type: 'Identifier', name: '#bar' },
+							operator: '*',
+							right: { type: 'Identifier', name: 'bar' }
+						}
+					}]
+				}
+			});
+		});
 	});
 
 	describe('print', () => {
@@ -139,6 +182,35 @@ describe('codered', () => {
 				d(`
 					function foo(bar, baz) {
 						return bar * baz;
+					}
+				`)
+			);
+		});
+
+		it('replaces @-prefixed names', () => {
+			const node = x`@foo(bar)`;
+
+			const { code } = print(node, {
+				getName: (name: string) => name.toUpperCase()
+			});
+
+			assert.equal(code, 'FOO(bar)');
+		});
+
+		it('deconflicts #-prefixed names', () => {
+			const node = x`
+				function foo(#bar) {
+					return #bar * bar;
+				}
+			`;
+
+			const { code } = print(node);
+
+			assert.equal(
+				code,
+				d(`
+					function foo(bar$1) {
+						return bar$1 * bar;
 					}
 				`)
 			);
