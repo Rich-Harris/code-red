@@ -71,6 +71,11 @@ function add(foo, bar) {
 ```
 
 
+## Optimiser
+
+TODO add an optimiser that e.g. collapses consecutive identical if blocks
+
+
 ## Compiler
 
 TODO add a `code-red/compiler` module that replaces template literals with the nodes they evaluate to, so that there's nothing to parse at runtime.

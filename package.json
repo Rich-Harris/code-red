@@ -1,7 +1,7 @@
 {
   "name": "code-red",
   "description": "code-red",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": "Rich-Harris/code-red",
   "main": "dist/code-red.js",
   "module": "dist/code-red.mjs",
@@ -34,6 +34,8 @@
     "acorn": "^7.0.0",
     "astring": "^1.4.1",
     "estree-walker": "^0.6.1",
+    "is-reference": "^1.1.3",
+    "periscopic": "^1.0.0",
     "source-map": "^0.7.3"
   }
 }
