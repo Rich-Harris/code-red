@@ -40,22 +40,37 @@ const inject = (node: acorn.Node, values: any[]) => {
 }
 
 export function b(strings: TemplateStringsArray, ...values: any[]) {
-	const ast: any = acorn.parse(join(strings), {
-		ecmaVersion: 2019,
-		sourceType: 'module'
-	});
+	const str = join(strings);
+	try {
+		const ast: any = acorn.parse(str, {
+			ecmaVersion: 2019,
+			sourceType: 'module',
+			allowAwaitOutsideFunction: true,
+			allowReturnOutsideFunction: true
+		});
 
-	inject(ast, values);
+		inject(ast, values);
 
-	return ast.body;
+		return ast.body;
+	} catch (err) {
+		console.log(str); // TODO proper error reporting
+		throw err;
+	}
 }
 
 export function x(strings: TemplateStringsArray, ...values: any[]) {
-	const expression = acorn.parseExpressionAt(join(strings));
+	const str = join(strings);
 
-	inject(expression, values);
+	try {
+		const expression = acorn.parseExpressionAt(str);
 
-	return expression;
+		inject(expression, values);
+
+		return expression;
+	} catch (err) {
+		console.log(str); // TODO proper error reporting
+		throw err;
+	}
 }
 
 export { print } from './print/index';
