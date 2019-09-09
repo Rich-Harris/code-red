@@ -1,5 +1,10 @@
 # code-red changelog
 
+## 0.0.3
+
+* Allow return outside function
+* Print code on syntax error
+
 ## 0.0.2
 
 * Support `@`-prefixed names (replaceable globals)
