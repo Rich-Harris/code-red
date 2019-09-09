@@ -38,6 +38,29 @@ export function print(node: acorn.Node, opts: PrintOptions = {}) {
 	});
 
 	const generator = Object.assign({}, astring.baseGenerator, {
+		handle(this: any, node: any, state: any) {
+			if (Array.isArray(node)) {
+				for (let i = 0; i < node.length; i += 1) {
+					this.handle(node[i], state);
+					if (i < node.length - 1) {
+						state.write(state.lineEnd);
+						state.write(state.indent);
+					}
+				}
+
+				return;
+			}
+
+			if (!node.type) {
+				console.log(`missing type: `, node);
+			}
+
+			if (!this[node.type]) {
+				throw new Error(`Not implemented: ${node.type}`);
+			}
+
+			this[node.type](node, state);
+		},
 		AwaitExpression(this: any, node: any, state: any) {
 			state.write('await ');
 			const { argument } = node;
