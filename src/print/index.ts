@@ -1,6 +1,6 @@
 import * as acorn from 'acorn';
 import * as astring from 'astring';
-import * as SourceMap from 'source-map';
+// import * as SourceMap from 'source-map';
 import * as perisopic from 'periscopic';
 import { walk } from 'estree-walker';
 import is_reference from 'is-reference';
@@ -80,6 +80,10 @@ export function print(node: acorn.Node, opts: PrintOptions = {}) {
 		},
 
 		Identifier(this: any, node: any, state: any) {
+			if (!node.name) {
+				console.log(node);
+			}
+
 			if (node.name[0] === '@') {
 				node = { ...node, name: getName(node.name.slice(1)) }
 			}
@@ -106,9 +110,9 @@ export function print(node: acorn.Node, opts: PrintOptions = {}) {
 		}
 	});
 
-	const map = new SourceMap.SourceMapGenerator({
-		file: opts.file
-	});
+	// const map = new SourceMap.SourceMapGenerator({
+	// 	file: opts.file
+	// });
 
 	const code = astring.generate(node as any, {
 		indent: '\t',
@@ -117,6 +121,6 @@ export function print(node: acorn.Node, opts: PrintOptions = {}) {
 
 	return {
 		code,
-		map
+		map: null as any
 	};
 }
