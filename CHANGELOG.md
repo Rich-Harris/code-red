@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.4
+
+* Use fork of astring
+
 ## 0.0.3
 
 * Allow return outside function
