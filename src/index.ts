@@ -17,6 +17,11 @@ const join = (strings: TemplateStringsArray) => {
 const flatten = (array: any[], target: any[]) => {
 	for (let i = 0; i < array.length; i += 1) {
 		const statement = array[i];
+		if (Array.isArray(statement)) {
+			flatten(statement, target);
+			continue;
+		}
+
 		if (statement.type === 'ExpressionStatement') {
 			if (!statement.expression) continue;
 
@@ -54,19 +59,8 @@ const inject = (node: acorn.Node, values: any[]) => {
 				}
 			}
 
-			// if (node.type === 'ExpressionStatement') {
-			// 	if (Array.isArray(node.expression)) {
-			// 		console.log('>>>>unwrap')
-
-			// 	} else if (!node.expression) {
-			// 		console.log('>>>>splice')
-			// 	}
-			// }
-
 			if (node.type === 'Program' || node.type === 'BlockStatement') {
 				node.body = flatten(node.body, []);
-
-				console.log('>>>', node.body);
 			}
 		}
 	});

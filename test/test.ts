@@ -68,15 +68,13 @@ describe('codered', () => {
 			]);
 		});
 
-		it.only('unwraps arrays', () => {
+		it('unwraps arrays', () => {
 			const vars = [x`a`, x`b`, x`c`];
 			const declarations = vars.map(v => b`console.log(${v})`);
 
 			const fn: any = x`function foo() {
 				${declarations}
 			}`;
-
-			console.log(JSON.stringify(fn, null, '  '));
 
 			const call = name => ({
 				type: 'ExpressionStatement',
@@ -85,7 +83,8 @@ describe('codered', () => {
 					callee: {
 						type: 'MemberExpression',
 						object: { type: 'Identifier', name: 'console' },
-						property: { type: 'Identifier', name: 'log' }
+						property: { type: 'Identifier', name: 'log' },
+						computed: false
 					},
 					arguments: [
 						{ type: 'Identifier', name }
