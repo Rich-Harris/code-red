@@ -12,6 +12,24 @@ const join = (strings: TemplateStringsArray) => {
 		str += `___${i - 1}___${strings[i]}`;
 	}
 	return str.replace(/([@#])(\w+)/g, (_m, sigil: string, name: string) => `___${sigils[sigil]}___${name}`);
+};
+
+const flatten = (array: any[], target: any[]) => {
+	for (let i = 0; i < array.length; i += 1) {
+		const statement = array[i];
+		if (statement.type === 'ExpressionStatement') {
+			if (!statement.expression) continue;
+
+			if (Array.isArray(statement.expression)) {
+				flatten(statement.expression, target);
+				continue;
+			}
+		}
+
+		target.push(statement);
+	}
+
+	return target;
 }
 
 const inject = (node: acorn.Node, values: any[]) => {
@@ -36,13 +54,19 @@ const inject = (node: acorn.Node, values: any[]) => {
 				}
 			}
 
-			if (node.type === 'Program' || node.type === 'BlockStatement') {
-				const body = node.body.filter((statement: any) => {
-					if (statement.type !== 'ExpressionStatement') return true;
-					return !!statement.expression;
-				});
+			// if (node.type === 'ExpressionStatement') {
+			// 	if (Array.isArray(node.expression)) {
+			// 		console.log('>>>>unwrap')
 
-				node.body = body;
+			// 	} else if (!node.expression) {
+			// 		console.log('>>>>splice')
+			// 	}
+			// }
+
+			if (node.type === 'Program' || node.type === 'BlockStatement') {
+				node.body = flatten(node.body, []);
+
+				console.log('>>>', node.body);
 			}
 		}
 	});

@@ -67,6 +67,38 @@ describe('codered', () => {
 				}
 			]);
 		});
+
+		it.only('unwraps arrays', () => {
+			const vars = [x`a`, x`b`, x`c`];
+			const declarations = vars.map(v => b`console.log(${v})`);
+
+			const fn: any = x`function foo() {
+				${declarations}
+			}`;
+
+			console.log(JSON.stringify(fn, null, '  '));
+
+			const call = name => ({
+				type: 'ExpressionStatement',
+				expression: {
+					type: 'CallExpression',
+					callee: {
+						type: 'MemberExpression',
+						object: { type: 'Identifier', name: 'console' },
+						property: { type: 'Identifier', name: 'log' }
+					},
+					arguments: [
+						{ type: 'Identifier', name }
+					]
+				}
+			});
+
+			assert.deepEqual(fn.body.body, [
+				call('a'),
+				call('b'),
+				call('c')
+			]);
+		});
 	});
 
 	describe('x', () => {

@@ -104,6 +104,9 @@ export function print(node: acorn.Node, opts: PrintOptions = {}) {
 
 			if (node.name[0] === '#') {
 				const scope = scope_map.get(node);
+				if (!scope) {
+					throw new Error(`Could not find scope for node`);
+				}
 				const owner = scope.find_owner(node.name);
 
 				if (!deconflicted.has(owner)) {
