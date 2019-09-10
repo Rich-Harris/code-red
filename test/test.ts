@@ -40,6 +40,33 @@ describe('codered', () => {
 				}
 			]);
 		});
+
+		it('ignores falsy values', () => {
+			assert.deepEqual(b`
+				a++;
+				${false}
+				b++
+			`, [
+				{
+					type: 'ExpressionStatement',
+					expression: {
+						type: 'UpdateExpression',
+						operator: '++',
+						prefix: false,
+						argument: { type: 'Identifier', name: 'a' }
+					}
+				},
+				{
+					type: 'ExpressionStatement',
+					expression: {
+						type: 'UpdateExpression',
+						operator: '++',
+						prefix: false,
+						argument: { type: 'Identifier', name: 'b' }
+					}
+				}
+			]);
+		});
 	});
 
 	describe('x', () => {

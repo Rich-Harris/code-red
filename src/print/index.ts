@@ -39,6 +39,8 @@ export function print(node: acorn.Node, opts: PrintOptions = {}) {
 
 	const generator = Object.assign({}, astring.baseGenerator, {
 		handle(this: any, node: any, state: any) {
+			// console.log('----> handling', JSON.stringify(node, null, '  '));
+
 			if (Array.isArray(node)) {
 				for (let i = 0; i < node.length; i += 1) {
 					this.handle(node[i], state);
@@ -59,7 +61,19 @@ export function print(node: acorn.Node, opts: PrintOptions = {}) {
 				throw new Error(`Not implemented: ${node.type}`);
 			}
 
-			this[node.type](node, state);
+			try {
+				this[node.type](node, state);
+			} catch (err) {
+				if (!err.depth) {
+					console.log(`${err.message} while handling`, node);
+					err.depth = 1;
+				} else if (err.depth <= 3) {
+					console.log(`${err.depth}:`, node);
+					err.depth += 1;
+				}
+
+				throw err;
+			}
 		},
 		AwaitExpression(this: any, node: any, state: any) {
 			state.write('await ');

@@ -16,7 +16,7 @@ const join = (strings: TemplateStringsArray) => {
 
 const inject = (node: acorn.Node, values: any[]) => {
 	walk(node, {
-		enter(node, parent, key, index) {
+		leave(node, parent, key, index) {
 			delete node.start;
 			delete node.end;
 
@@ -34,6 +34,15 @@ const inject = (node: acorn.Node, values: any[]) => {
 						parent[key][index] = value;
 					}
 				}
+			}
+
+			if (node.type === 'Program' || node.type === 'BlockStatement') {
+				const body = node.body.filter((statement: any) => {
+					if (statement.type !== 'ExpressionStatement') return true;
+					return !!statement.expression;
+				});
+
+				node.body = body;
 			}
 		}
 	});
