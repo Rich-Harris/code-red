@@ -161,6 +161,13 @@ describe('codered', () => {
 					{ type: 'Identifier', name: 'bar' }
 				]
 			});
+
+			const id = x`@foo`;
+
+			assert.deepEqual(id, {
+				type: 'Identifier',
+				name: '@foo'
+			});
 		});
 
 		it('preserves #-prefixed names', () => {
@@ -192,6 +199,41 @@ describe('codered', () => {
 					}]
 				}
 			});
+		});
+
+		it('flattens parameters', () => {
+			const args = [
+				x`a`,
+				x`b`
+			];
+
+			const fn = x`function (${args}) {
+				return a + b;
+			}`;
+
+			assert.deepEqual(fn, {
+				type: 'FunctionExpression',
+				id: null,
+				expression: false,
+				generator: false,
+				async: false,
+				params: [
+					{ type: 'Identifier', name: 'a' },
+					{ type: 'Identifier', name: 'b' }
+				],
+				body: {
+					type: 'BlockStatement',
+					body: [{
+						type: 'ReturnStatement',
+						argument: {
+							type: 'BinaryExpression',
+							left: { type: 'Identifier', name: 'a' },
+							operator: '+',
+							right: { type: 'Identifier', name: 'b' }
+						}
+					}]
+				}
+			})
 		});
 	});
 

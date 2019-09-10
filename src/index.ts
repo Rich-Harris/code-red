@@ -14,11 +14,11 @@ const join = (strings: TemplateStringsArray) => {
 	return str.replace(/([@#])(\w+)/g, (_m, sigil: string, name: string) => `___${sigils[sigil]}___${name}`);
 };
 
-const flatten = (array: any[], target: any[]) => {
+const flatten_body = (array: any[], target: any[]) => {
 	for (let i = 0; i < array.length; i += 1) {
 		const statement = array[i];
 		if (Array.isArray(statement)) {
-			flatten(statement, target);
+			flatten_body(statement, target);
 			continue;
 		}
 
@@ -26,12 +26,29 @@ const flatten = (array: any[], target: any[]) => {
 			if (!statement.expression) continue;
 
 			if (Array.isArray(statement.expression)) {
-				flatten(statement.expression, target);
+				flatten_body(statement.expression, target);
 				continue;
 			}
 		}
 
 		target.push(statement);
+	}
+
+	return target;
+}
+
+const flatten = (nodes: any[], target: any[]) => {
+	for (let i = 0; i < nodes.length; i += 1) {
+		const node = nodes[i];
+
+		if (!node) continue;
+
+		if (Array.isArray(node)) {
+			flatten(node, target);
+			continue;
+		}
+
+		target.push(node);
 	}
 
 	return target;
@@ -47,21 +64,28 @@ const inject = (node: acorn.Node, values: any[]) => {
 				const match = /___(?:(\d+)|(AT)|(HASH))___(\w+)?/.exec(node.name);
 
 				if (match) {
-					const value = match[1]
-						? +match[1] in values ? values[+match[1]] : match[1]
-						: { type: 'Identifier', name: `${match[2] ? `@` : `#`}${match[4]}` };
+					if (match[1]) {
+						if (+match[1] in values) {
+							const value = values[+match[1]];
 
-					if (index === null) {
-						parent[key] = value;
+							if (index === null) {
+								parent[key] = value;
+							} else {
+								parent[key][index] = value;
+							}
+						}
 					} else {
-						parent[key][index] = value;
+						node.name = `${match[2] ? `@` : `#`}${match[4]}`;
 					}
 				}
 			}
 
 			if (node.type === 'Program' || node.type === 'BlockStatement') {
-				node.body = flatten(node.body, []);
+				node.body = flatten_body(node.body, []);
 			}
+
+			if (node.params) node.params = flatten(node.params, []);
+			if (node.arguments) node.arguments = flatten(node.arguments, []);
 		}
 	});
 }
@@ -80,7 +104,7 @@ export function b(strings: TemplateStringsArray, ...values: any[]) {
 
 		return ast.body;
 	} catch (err) {
-		console.log(str); // TODO proper error reporting
+		console.log(`failed to parse:\n${str}`); // TODO proper error reporting
 		throw err;
 	}
 }
@@ -95,7 +119,7 @@ export function x(strings: TemplateStringsArray, ...values: any[]) {
 
 		return expression;
 	} catch (err) {
-		console.log(str); // TODO proper error reporting
+		console.log(`failed to parse:\n${str}`); // TODO proper error reporting
 		throw err;
 	}
 }
