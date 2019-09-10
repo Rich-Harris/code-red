@@ -1,5 +1,10 @@
 # code-red changelog
 
+## 0.0.5
+
+* Omit missing statements
+* Flatten arrays of statements
+
 ## 0.0.4
 
 * Use fork of astring
