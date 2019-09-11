@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.7
+
+* Various
+
 ## 0.0.6
 
 * Flatten arguments and parameters
