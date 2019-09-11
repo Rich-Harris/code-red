@@ -1,6 +1,10 @@
 import * as acorn from 'acorn';
 import { walk } from 'estree-walker';
 
+// generate an ID that is, to all intents and purposes, unique
+const id = (Math.round(Math.random() * 1e20)).toString(36);
+const re = new RegExp(`_${id}_(?:(\\d+)|(AT)|(HASH))_(\\w+)?`, 'g');
+
 const sigils: Record<string, string> = {
 	'@': 'AT',
 	'#': 'HASH'
@@ -9,9 +13,9 @@ const sigils: Record<string, string> = {
 const join = (strings: TemplateStringsArray) => {
 	let str = strings[0];
 	for (let i = 1; i < strings.length; i += 1) {
-		str += `___${i - 1}___${strings[i]}`;
+		str += `_${id}_${i - 1}_${strings[i]}`;
 	}
-	return str.replace(/([@#])(\w+)/g, (_m, sigil: string, name: string) => `___${sigils[sigil]}___${name}`);
+	return str.replace(/([@#])(\w+)/g, (_m, sigil: string, name: string) => `_${id}_${sigils[sigil]}_${name}`);
 };
 
 const flatten_body = (array: any[], target: any[]) => {
@@ -61,7 +65,8 @@ const inject = (node: acorn.Node, values: any[]) => {
 			delete node.end;
 
 			if (node.type === 'Identifier') {
-				const match = /___(?:(\d+)|(AT)|(HASH))___(\w+)?/.exec(node.name);
+				re.lastIndex = 0;
+				const match = re.exec(node.name);
 
 				if (match) {
 					if (match[1]) {
@@ -80,12 +85,20 @@ const inject = (node: acorn.Node, values: any[]) => {
 				}
 			}
 
+			if (node.type === 'Literal') {
+				if (typeof node.value === 'string') {
+					re.lastIndex = 0;
+					node.value = node.value.replace(re, (m, i) => +i in values ? values[+i] : m);
+				}
+			}
+
 			if (node.type === 'Program' || node.type === 'BlockStatement') {
 				node.body = flatten_body(node.body, []);
 			}
 
 			if (node.params) node.params = flatten(node.params, []);
 			if (node.arguments) node.arguments = flatten(node.arguments, []);
+			if (node.specifiers) node.specifiers = flatten(node.specifiers, []);
 		}
 	});
 }
@@ -113,7 +126,11 @@ export function x(strings: TemplateStringsArray, ...values: any[]) {
 	const str = join(strings);
 
 	try {
-		const expression = acorn.parseExpressionAt(str);
+		const expression = acorn.parseExpressionAt(str, 0, {
+			allowAwaitOutsideFunction: true,
+			allowImportExportEverywhere: true,
+			allowReturnOutsideFunction: true
+		});
 
 		inject(expression, values);
 

@@ -235,6 +235,13 @@ describe('codered', () => {
 				}
 			})
 		});
+
+		it(`replaces strings`, () => {
+			const name = 'world';
+			const expression = x`hello("${name}")`;
+
+			assert.equal((expression as any).arguments[0].value, 'world');
+		});
 	});
 
 	describe('print', () => {
@@ -269,7 +276,7 @@ describe('codered', () => {
 			const bar = x`bar`;
 			const baz = x`baz`;
 
-			const params = x`${bar}, ${baz}`;
+			const params = [bar, baz];
 
 			const node = x`function foo(${params}) {
 				return ${bar} * ${baz};

@@ -29,19 +29,11 @@ export function print(node: acorn.Node, opts: PrintOptions = {}) {
 	const { map: scope_map } = perisopic.analyze(node);
 	const deconflicted = new WeakMap();
 
-	walk(node, {
-		enter(node: any, parent: any) {
-			if (is_reference(node, parent)) {
-
-			}
-		}
-	});
-
 	const generator = Object.assign({}, astring.baseGenerator, {
 		handle(this: any, node: any, state: any) {
-			// console.log('----> handling', JSON.stringify(node, null, '  '));
-
 			if (Array.isArray(node)) {
+				console.log(node);
+				throw new Error('hmm');
 				for (let i = 0; i < node.length; i += 1) {
 					this.handle(node[i], state);
 					if (i < node.length - 1) {
@@ -65,32 +57,21 @@ export function print(node: acorn.Node, opts: PrintOptions = {}) {
 				this[node.type](node, state);
 			} catch (err) {
 				if (!err.depth) {
-					console.log(`${err.message} while handling`, node);
+					console.log(`${err.message} while handling`, JSON.stringify(node, null, '  '));
 					err.depth = 1;
 				} else if (err.depth <= 3) {
-					console.log(`${err.depth}:`, node);
+					console.log(`${err.depth}:`, JSON.stringify(node, null, '  '));
 					err.depth += 1;
 				}
 
 				throw err;
 			}
 		},
+
 		AwaitExpression(this: any, node: any, state: any) {
 			state.write('await ');
 			const { argument } = node;
 			this[argument.type](argument, state);
-		},
-
-		FunctionExpression(this: any, node: any, state: any) {
-			const params = [].concat(...node.params.map((param: any) => {
-				if (param.type === 'SequenceExpression') {
-					return param.expressions;
-				}
-
-				return param;
-			}));
-
-			return astring.baseGenerator.FunctionExpression.call(this, { ...node, params }, state);
 		},
 
 		Identifier(this: any, node: any, state: any) {
@@ -124,6 +105,15 @@ export function print(node: acorn.Node, opts: PrintOptions = {}) {
 			}
 
 			return astring.baseGenerator.Identifier.call(this, node, state);
+		},
+
+		Literal(this: any, node: any, state: any) {
+			if (typeof node.value === 'string') {
+				state.write(JSON.stringify(node.value));
+				return;
+			}
+
+			astring.baseGenerator.Literal.call(this, node, state);
 		}
 	});
 
