@@ -71,7 +71,10 @@ const inject = (node: acorn.Node, values: any[]) => {
 				if (match) {
 					if (match[1]) {
 						if (+match[1] in values) {
-							const value = values[+match[1]];
+							let value = values[+match[1]];
+							if (typeof value === 'string') {
+								value = { type: 'Identifier', name: value };
+							}
 
 							if (index === null) {
 								parent[key] = value;

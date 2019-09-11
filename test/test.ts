@@ -242,6 +242,16 @@ describe('codered', () => {
 
 			assert.equal((expression as any).arguments[0].value, 'world');
 		});
+
+		it(`allows strings in place of identifiers`, () => {
+			const name = 'world';
+			const expression = x`hello(${name})`;
+
+			assert.deepEqual((expression as any).arguments[0], {
+				type: 'Identifier',
+				name: 'world'
+			});
+		});
 	});
 
 	describe('print', () => {
