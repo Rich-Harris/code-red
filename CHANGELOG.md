@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.8
+
+* Allow strings to be treated as identifiers
+
 ## 0.0.7
 
 * Various
