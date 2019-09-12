@@ -50,6 +50,7 @@ export function print(node: acorn.Node, opts: PrintOptions = {}) {
 			}
 
 			if (!this[node.type]) {
+				console.log(node);
 				throw new Error(`Not implemented: ${node.type}`);
 			}
 
