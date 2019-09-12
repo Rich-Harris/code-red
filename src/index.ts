@@ -102,6 +102,7 @@ const inject = (node: acorn.Node, values: any[]) => {
 			if (node.params) node.params = flatten(node.params, []);
 			if (node.arguments) node.arguments = flatten(node.arguments, []);
 			if (node.specifiers) node.specifiers = flatten(node.specifiers, []);
+			if (node.elements) node.elements = flatten(node.elements, []);
 		}
 	});
 }

@@ -252,6 +252,19 @@ describe('codered', () => {
 				name: 'world'
 			});
 		});
+
+		it('flattens arrays', () => {
+			const vars = [x`a`, x`b`, x`c`];
+			const arr = x`[${vars}]`;
+
+			assert.deepEqual(arr, {
+				type: 'ArrayExpression',
+				elements: ['a', 'b', 'c'].map(name => ({
+					type: 'Identifier',
+					name
+				}))
+			});
+		});
 	});
 
 	describe('print', () => {

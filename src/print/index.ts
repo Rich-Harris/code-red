@@ -33,7 +33,7 @@ export function print(node: acorn.Node, opts: PrintOptions = {}) {
 		handle(this: any, node: any, state: any) {
 			if (Array.isArray(node)) {
 				console.log(node);
-				throw new Error('hmm');
+				throw new Error('we have an array where there probably should not be an array');
 				for (let i = 0; i < node.length; i += 1) {
 					this.handle(node[i], state);
 					if (i < node.length - 1) {
