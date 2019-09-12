@@ -345,5 +345,21 @@ describe('codered', () => {
 				`)
 			);
 		});
+
+		it('handles #-prefixed names in arrow functions', () => {
+			const body: any = b`const foo = #bar => #bar * 2`;
+
+			const { code } = print({
+				type: 'Program',
+				body
+			} as any);
+
+			assert.equal(
+				code.trim(),
+				d(`
+					const foo = bar => bar * 2;
+				`)
+			);
+		});
 	});
 });
