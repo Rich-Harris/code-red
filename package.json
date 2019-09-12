@@ -27,7 +27,8 @@
     "build": "npm run build-declarations && rollup -c",
     "dev": "rollup -cw",
     "test": "mocha --opts mocha.opts",
-    "prepublishOnly": "npm test && npm run build"
+    "prepublishOnly": "npm test && npm run build",
+    "repl": "node -e \"const { x, b, print } = require('./')\" -i"
   },
   "license": "MIT",
   "dependencies": {
