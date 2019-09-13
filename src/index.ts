@@ -72,8 +72,11 @@ const inject = (node: acorn.Node, values: any[]) => {
 					if (match[1]) {
 						if (+match[1] in values) {
 							let value = values[+match[1]];
+
 							if (typeof value === 'string') {
 								value = { type: 'Identifier', name: value };
+							} else if (typeof value === 'number') {
+								value = { type: 'Literal', value };
 							}
 
 							if (index === null) {
@@ -93,6 +96,11 @@ const inject = (node: acorn.Node, values: any[]) => {
 					re.lastIndex = 0;
 					node.value = node.value.replace(re, (m, i) => +i in values ? values[+i] : m);
 				}
+			}
+
+			if (node.type === 'TemplateElement') {
+				re.lastIndex = 0;
+				node.value.raw = (node.value.raw as string).replace(re, (m, i) => +i in values ? values[+i] : m);
 			}
 
 			if (node.type === 'Program' || node.type === 'BlockStatement') {

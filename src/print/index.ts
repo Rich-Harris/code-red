@@ -60,7 +60,7 @@ export function print(node: acorn.Node, opts: PrintOptions = {}) {
 				if (!err.depth) {
 					console.log(`${err.message} while handling`, JSON.stringify(node, null, '  '));
 					err.depth = 1;
-				} else if (err.depth <= 3) {
+				} else if (err.depth <= 2) {
 					console.log(`${err.depth}:`, JSON.stringify(node, null, '  '));
 					err.depth += 1;
 				}

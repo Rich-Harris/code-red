@@ -243,6 +243,23 @@ describe('codered', () => {
 			assert.equal((expression as any).arguments[0].value, 'world');
 		});
 
+		it(`replaces numbers`, () => {
+			const answer = 42;
+			const expression = x`console.log("the answer is", ${answer})`;
+
+			assert.deepEqual((expression as any).arguments[1], {
+				type: 'Literal',
+				value: 42
+			});
+		});
+
+		it(`replaces strings in template literals`, () => {
+			const foo = 'bar';
+			const expression = x`\`${foo}\``;
+
+			assert.equal((expression as any).quasis[0].value.raw, 'bar');
+		});
+
 		it(`allows strings in place of identifiers`, () => {
 			const name = 'world';
 			const expression = x`hello(${name})`;
