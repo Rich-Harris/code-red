@@ -1,5 +1,10 @@
 # code-red changelog
 
+## 0.0.9
+
+* Adopt estree types
+* Add a `p` function for creating properties
+
 ## 0.0.8
 
 * Allow strings to be treated as identifiers
