@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { x, b, print } from '../src/index';
+import { x, b, p, print } from '../src/index';
 import { ObjectExpression, Identifier } from 'estree';
 
 const d = (str: string) => str.replace(/^\t{5}/gm, '').trim();
@@ -292,6 +292,26 @@ describe('codered', () => {
 
 			assert.equal(obj.properties.length, 1);
 			assert.equal((obj.properties[0].key as Identifier).name, 'a');
+		});
+	});
+
+	describe('p', () => {
+		it('creates a regular object property', () => {
+			const obj = x`{}` as ObjectExpression;
+			obj.properties.push(p`foo: 'bar'`);
+
+			assert.deepEqual(obj, {
+				type: 'ObjectExpression',
+				properties: [{
+					type: 'Property',
+					kind: 'init',
+					method: false,
+					shorthand: false,
+					computed: false,
+					key: { type: 'Identifier', name: 'foo' },
+					value: { type: 'Literal', value: 'bar', raw: "'bar'" }
+				}]
+			});
 		});
 	});
 
