@@ -1,9 +1,7 @@
-import * as acorn from 'acorn';
 import * as astring from 'astring';
 // import * as SourceMap from 'source-map';
 import * as perisopic from 'periscopic';
-import { walk } from 'estree-walker';
-import is_reference from 'is-reference';
+import { Node } from 'estree';
 
 type PrintOptions = {
 	file?: string;
@@ -21,7 +19,7 @@ function deconflict(name: string, names: Set<string>) {
 	return name;
 }
 
-export function print(node: acorn.Node, opts: PrintOptions = {}) {
+export function print(node: Node, opts: PrintOptions = {}) {
 	const {
 		getName = (x: string) => x
 	} = opts;
@@ -90,6 +88,11 @@ export function print(node: acorn.Node, opts: PrintOptions = {}) {
 					throw new Error(`Could not find scope for node`);
 				}
 				const owner = scope.find_owner(node.name);
+
+				if (!owner) {
+					console.log(node);
+					throw new Error(`Could not find owner for node`);
+				}
 
 				if (!deconflicted.has(owner)) {
 					deconflicted.set(owner, new Map());

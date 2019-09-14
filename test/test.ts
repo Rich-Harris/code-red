@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { x, b, print } from '../src/index';
+import { ObjectExpression, Identifier } from 'estree';
 
 const d = (str: string) => str.replace(/^\t{5}/gm, '').trim();
 
@@ -281,6 +282,16 @@ describe('codered', () => {
 					name
 				}))
 			});
+		});
+
+		it('removes falsy properties from an object', () => {
+			const obj: ObjectExpression = x`{
+				a: 1,
+				b: ${false}
+			}`;
+
+			assert.equal(obj.properties.length, 1);
+			assert.equal((obj.properties[0].key as Identifier).name, 'a');
 		});
 	});
 

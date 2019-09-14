@@ -1,5 +1,6 @@
 import * as acorn from 'acorn';
 import { walk } from 'estree-walker';
+import { Property, Node } from 'estree';
 
 // generate an ID that is, to all intents and purposes, unique
 const id = (Math.round(Math.random() * 1e20)).toString(36);
@@ -58,11 +59,11 @@ const flatten = (nodes: any[], target: any[]) => {
 	return target;
 }
 
-const inject = (node: acorn.Node, values: any[]) => {
+const inject = (node: Node, values: any[]) => {
 	walk(node, {
 		leave(node, parent, key, index) {
-			delete node.start;
-			delete node.end;
+			delete (node as any).start;
+			delete (node as any).end;
 
 			if (node.type === 'Identifier') {
 				re.lastIndex = 0;
@@ -80,9 +81,9 @@ const inject = (node: acorn.Node, values: any[]) => {
 							}
 
 							if (index === null) {
-								parent[key] = value;
+								(parent as any)[key] = value;
 							} else {
-								parent[key][index] = value;
+								(parent as any)[key][index] = value;
 							}
 						}
 					} else {
@@ -107,10 +108,25 @@ const inject = (node: acorn.Node, values: any[]) => {
 				node.body = flatten_body(node.body, []);
 			}
 
-			if (node.params) node.params = flatten(node.params, []);
-			if (node.arguments) node.arguments = flatten(node.arguments, []);
-			if (node.specifiers) node.specifiers = flatten(node.specifiers, []);
-			if (node.elements) node.elements = flatten(node.elements, []);
+			if (node.type === 'ObjectExpression') {
+				node.properties = node.properties.filter((prop: Property) => prop.value);
+			}
+
+			if (node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration' || node.type === 'ArrowFunctionExpression') {
+				node.params = flatten(node.params, []);
+			}
+
+			if (node.type === 'CallExpression' || node.type === 'NewExpression') {
+				node.arguments = flatten(node.arguments, []);
+			}
+
+			if (node.type === 'ImportDeclaration' || node.type === 'ExportNamedDeclaration') {
+				node.specifiers = flatten(node.specifiers, []);
+			}
+
+			if (node.type === 'ArrayExpression') {
+				node.elements = flatten(node.elements, []);
+			}
 		}
 	});
 }
@@ -129,12 +145,11 @@ export function b(strings: TemplateStringsArray, ...values: any[]) {
 
 		return ast.body;
 	} catch (err) {
-		console.log(`failed to parse:\n${str}`); // TODO proper error reporting
-		throw err;
+		handle_error(str, err);
 	}
 }
 
-export function x(strings: TemplateStringsArray, ...values: any[]) {
+export function x(strings: TemplateStringsArray, ...values: any[]): Node {
 	const str = join(strings);
 
 	try {
@@ -142,15 +157,26 @@ export function x(strings: TemplateStringsArray, ...values: any[]) {
 			allowAwaitOutsideFunction: true,
 			allowImportExportEverywhere: true,
 			allowReturnOutsideFunction: true
-		});
+		}) as Node;
 
 		inject(expression, values);
 
 		return expression;
 	} catch (err) {
-		console.log(`failed to parse:\n${str}`); // TODO proper error reporting
-		throw err;
+		handle_error(str, err);
 	}
+}
+
+function handle_error(str: string, err: Error) {
+	// TODO location/code frame
+
+	str = str.replace(re, (m, i, s, n) => {
+		if (s) return sigils[s] + n;
+		return '${...}';
+	});
+
+	console.log(`failed to parse:\n${str}`);
+	throw err;
 }
 
 export { print } from './print/index';
