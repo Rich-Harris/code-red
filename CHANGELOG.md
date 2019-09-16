@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.10
+
+* Tweak some TypeScript stuff
+
 ## 0.0.9
 
 * Adopt estree types
