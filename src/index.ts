@@ -1,6 +1,6 @@
 import * as acorn from 'acorn';
 import { walk } from 'estree-walker';
-import { Property, Node, ObjectExpression } from 'estree';
+import { Property, Node, ObjectExpression, Expression } from 'estree';
 
 // generate an ID that is, to all intents and purposes, unique
 const id = (Math.round(Math.random() * 1e20)).toString(36);
@@ -131,7 +131,7 @@ const inject = (node: Node, values: any[]) => {
 	});
 }
 
-export function b(strings: TemplateStringsArray, ...values: any[]): Node {
+export function b(strings: TemplateStringsArray, ...values: any[]): Node[] {
 	const str = join(strings);
 	try {
 		const ast: any = acorn.parse(str, {
@@ -149,14 +149,14 @@ export function b(strings: TemplateStringsArray, ...values: any[]): Node {
 	}
 }
 
-export function x(strings: TemplateStringsArray, ...values: any[]): Node {
+export function x(strings: TemplateStringsArray, ...values: any[]): Expression {
 	const str = join(strings);
 
 	try {
 		const expression = acorn.parseExpressionAt(str, 0, {
 			allowAwaitOutsideFunction: true,
 			allowImportExportEverywhere: true
-		}) as Node;
+		}) as Expression;
 
 		inject(expression, values);
 
@@ -166,7 +166,7 @@ export function x(strings: TemplateStringsArray, ...values: any[]): Node {
 	}
 }
 
-export function p(strings: TemplateStringsArray, ...values: any[]): Node {
+export function p(strings: TemplateStringsArray, ...values: any[]): Property {
 	const str = `{${join(strings)}}`;
 
 	try {
