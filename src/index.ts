@@ -11,11 +11,6 @@ const sigils: Record<string, string> = {
 	'#': 'HASH'
 };
 
-const reverse_sigils: Record<string, string> = {
-	'AT': '@',
-	'HASH': '#'
-};
-
 const join = (strings: TemplateStringsArray) => {
 	let str = strings[0];
 	for (let i = 1; i < strings.length; i += 1) {
@@ -87,10 +82,6 @@ const inject = (node: Node, values: any[]) => {
 			delete (node as any).start;
 			delete (node as any).end;
 
-			if (node.type === 'Property' && Array.isArray(node.key)) {
-				// throw new Error(`array`);
-			}
-
 			if (node.type === 'Identifier') {
 				re.lastIndex = 0;
 				const match = re.exec(node.name);
@@ -104,10 +95,6 @@ const inject = (node: Node, values: any[]) => {
 								value = { type: 'Identifier', name: value };
 							} else if (typeof value === 'number') {
 								value = { type: 'Literal', value };
-							}
-
-							if (value && value.type === 'Identifier' && value.name.startsWith(`letters =`)) {
-								throw new Error(`wut ${match[1]}`);
 							}
 
 							if (index === null) {
