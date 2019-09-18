@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.11
+
+* Handle deconfliction edge case
+
 ## 0.0.10
 
 * Tweak some TypeScript stuff

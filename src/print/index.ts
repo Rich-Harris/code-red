@@ -24,8 +24,15 @@ export function print(node: Node, opts: PrintOptions = {}) {
 		getName = (x: string) => x
 	} = opts;
 
-	const { map: scope_map } = perisopic.analyze(node);
+	let { map: scope_map, scope: current_scope } = perisopic.analyze(node);
 	const deconflicted = new WeakMap();
+
+	const set_scope = (type: string) => function(this: any, node: any, state: any) {
+		const previous_scope = current_scope;
+		current_scope = scope_map.get(node);
+		(astring.baseGenerator as any)[type].call(this, node, state);
+		current_scope = previous_scope;
+	};
 
 	const generator = Object.assign({}, astring.baseGenerator, {
 		handle(this: any, node: any, state: any) {
@@ -67,11 +74,14 @@ export function print(node: Node, opts: PrintOptions = {}) {
 			}
 		},
 
-		AwaitExpression(this: any, node: any, state: any) {
-			state.write('await ');
-			const { argument } = node;
-			this[argument.type](argument, state);
-		},
+		ArrowFunctionExpression: set_scope('ArrowFunctionExpression'),
+		BlockStatement: set_scope('BlockStatement'),
+		CatchClause: set_scope('CatchClause'),
+		ForStatement: set_scope('ForStatement'),
+		ForInStatement: set_scope('ForInStatement'),
+		ForOfStatement: set_scope('ForOfStatement'),
+		FunctionDeclaration: set_scope('FunctionDeclaration'),
+		FunctionExpression: set_scope('FunctionExpression'),
 
 		Identifier(this: any, node: any, state: any) {
 			if (!node.name) {
@@ -79,15 +89,12 @@ export function print(node: Node, opts: PrintOptions = {}) {
 			}
 
 			if (node.name[0] === '@') {
-				node = { ...node, name: getName(node.name.slice(1)) }
+				const name = getName(node.name.slice(1));
+				state.write(name, node);
 			}
 
-			if (node.name[0] === '#') {
-				const scope = scope_map.get(node);
-				if (!scope) {
-					throw new Error(`Could not find scope for node`);
-				}
-				const owner = scope.find_owner(node.name);
+			else if (node.name[0] === '#') {
+				const owner = current_scope.find_owner(node.name);
 
 				if (!owner) {
 					console.log(node);
@@ -105,10 +112,12 @@ export function print(node: Node, opts: PrintOptions = {}) {
 				}
 
 				const name = deconflict_map.get(node.name);
-				node = { ...node, name };
+				state.write(name, node);
 			}
 
-			return astring.baseGenerator.Identifier.call(this, node, state);
+			else {
+				state.write(node.name, node);
+			}
 		},
 
 		Literal(this: any, node: any, state: any) {

@@ -394,6 +394,37 @@ describe('codered', () => {
 			);
 		});
 
+		it('deconflicts #-prefixed names when node is reused', () => {
+			const bar = x`#bar`;
+
+			const node = x`
+				function foo(#bar) {
+					const bar = 'x';
+
+					${bar} += 1;
+
+					return (#bar) => {
+						console.log(${bar});
+					};
+				}
+			`;
+
+			const { code } = print(node);
+
+			assert.equal(
+				code,
+				d(`
+					function foo(bar$1) {
+						const bar = "x";
+						bar$1 += 1;
+						return bar => {
+							console.log(bar);
+						};
+					}
+				`)
+			);
+		});
+
 		it('handles #-prefixed names in arrow functions', () => {
 			const body: any = b`const foo = #bar => #bar * 2`;
 
