@@ -284,6 +284,27 @@ describe('codered', () => {
 			});
 		});
 
+		it('flattens objects', () => {
+			const props = [p`a`, p`b`, p`c`];
+			const obj = x`{${props}}`;
+
+			assert.deepEqual(obj, {
+				type: 'ObjectExpression',
+				properties: ['a', 'b', 'c'].map(name => {
+					const id = { type: 'Identifier', name };
+					return {
+						type: 'Property',
+						kind: 'init',
+						method: false,
+						shorthand: true,
+						computed: false,
+						key: id,
+						value: id
+					};
+				})
+			});
+		});
+
 		it('removes falsy properties from an object', () => {
 			const obj: ObjectExpression = x`{
 				a: 1,

@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.12
+
+* Flatten object properties
+
 ## 0.0.11
 
 * Handle deconfliction edge case

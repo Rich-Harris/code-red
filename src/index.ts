@@ -11,6 +11,11 @@ const sigils: Record<string, string> = {
 	'#': 'HASH'
 };
 
+const reverse_sigils: Record<string, string> = {
+	'AT': '@',
+	'HASH': '#'
+};
+
 const join = (strings: TemplateStringsArray) => {
 	let str = strings[0];
 	for (let i = 1; i < strings.length; i += 1) {
@@ -42,6 +47,23 @@ const flatten_body = (array: any[], target: any[]) => {
 	return target;
 }
 
+const flatten_properties = (array: any[], target: any[]) => {
+	for (let i = 0; i < array.length; i += 1) {
+		const property = array[i];
+
+		if (!property.value) continue;
+
+		if (property.key === property.value && Array.isArray(property.key)) {
+			flatten_properties(property.key, target);
+			continue;
+		}
+
+		target.push(property);
+	}
+
+	return target;
+}
+
 const flatten = (nodes: any[], target: any[]) => {
 	for (let i = 0; i < nodes.length; i += 1) {
 		const node = nodes[i];
@@ -65,6 +87,10 @@ const inject = (node: Node, values: any[]) => {
 			delete (node as any).start;
 			delete (node as any).end;
 
+			if (node.type === 'Property' && Array.isArray(node.key)) {
+				// throw new Error(`array`);
+			}
+
 			if (node.type === 'Identifier') {
 				re.lastIndex = 0;
 				const match = re.exec(node.name);
@@ -78,6 +104,10 @@ const inject = (node: Node, values: any[]) => {
 								value = { type: 'Identifier', name: value };
 							} else if (typeof value === 'number') {
 								value = { type: 'Literal', value };
+							}
+
+							if (value && value.type === 'Identifier' && value.name.startsWith(`letters =`)) {
+								throw new Error(`wut ${match[1]}`);
 							}
 
 							if (index === null) {
@@ -109,7 +139,7 @@ const inject = (node: Node, values: any[]) => {
 			}
 
 			if (node.type === 'ObjectExpression') {
-				node.properties = node.properties.filter((prop: Property) => prop.value);
+				node.properties = flatten_properties(node.properties, []);
 			}
 
 			if (node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration' || node.type === 'ArrowFunctionExpression') {
@@ -186,8 +216,12 @@ export function p(strings: TemplateStringsArray, ...values: any[]): Property {
 function handle_error(str: string, err: Error) {
 	// TODO location/code frame
 
-	str = str.replace(re, (m, i, s, n) => {
-		if (s) return sigils[s] + n;
+	re.lastIndex = 0;
+
+	str = str.replace(re, (m, i, at, hash, name) => {
+		if (at) return `@${name}`;
+		if (hash) return `#${name}`;
+
 		return '${...}';
 	});
 
