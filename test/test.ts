@@ -409,5 +409,28 @@ describe('codered', () => {
 				`)
 			);
 		});
+
+		it('handles #-prefixed names in for loop heads', () => {
+			const i = x`i`;
+
+			const body: any = b`
+				for (let #i = 0; #i < 10; #i += 1) {
+					console.log(${i} * #i);
+				}`;
+
+			const { code } = print({
+				type: 'Program',
+				body
+			} as any);
+
+			assert.equal(
+				code.trim(),
+				d(`
+					for (let i$1 = 0; i$1 < 10; i$1 += 1) {
+						console.log(i * i$1);
+					}
+				`)
+			);
+		});
 	});
 });
