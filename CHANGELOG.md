@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.15
+
+* Flatten patterns
+
 ## 0.0.13-14
 
 * Sourcemaps
