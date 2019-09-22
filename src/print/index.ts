@@ -126,7 +126,7 @@ export function print(node: Node, opts: PrintOptions = {}) {
 		generator,
 		sourceMap: map,
 		sourceMapSource: opts.sourceMapSource || 'unknown'
-	});
+	} as any);
 
 	return {
 		code,
