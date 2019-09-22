@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.13
+
+* Sourcemaps
+
 ## 0.0.12
 
 * Flatten object properties
