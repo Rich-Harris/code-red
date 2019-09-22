@@ -125,8 +125,12 @@ const inject = (node: Node, values: any[]) => {
 				node.body = flatten_body(node.body, []);
 			}
 
-			if (node.type === 'ObjectExpression') {
+			if (node.type === 'ObjectExpression' || node.type === 'ObjectPattern') {
 				node.properties = flatten_properties(node.properties, []);
+			}
+
+			if (node.type === 'ArrayExpression' || node.type === 'ArrayPattern') {
+				node.elements = flatten(node.elements, []);
 			}
 
 			if (node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration' || node.type === 'ArrowFunctionExpression') {
@@ -139,10 +143,6 @@ const inject = (node: Node, values: any[]) => {
 
 			if (node.type === 'ImportDeclaration' || node.type === 'ExportNamedDeclaration') {
 				node.specifiers = flatten(node.specifiers, []);
-			}
-
-			if (node.type === 'ArrayExpression') {
-				node.elements = flatten(node.elements, []);
 			}
 		}
 	});

@@ -305,6 +305,38 @@ describe('codered', () => {
 			});
 		});
 
+		it('flattens patterns', () => {
+			const props = [p`a`, p`b`, p`c`];
+			const declaration = b`const { ${props} } = obj;`[0];
+
+			assert.deepEqual(declaration, {
+				type: 'VariableDeclaration',
+				kind: 'const',
+				declarations: [{
+					type: 'VariableDeclarator',
+					id: {
+						type: 'ObjectPattern',
+						properties: ['a', 'b', 'c'].map(name => {
+							const id = { type: 'Identifier', name };
+							return {
+								type: 'Property',
+								kind: 'init',
+								method: false,
+								computed: false,
+								shorthand: true,
+								key: id,
+								value: id
+							};
+						})
+					},
+					init: {
+						type: 'Identifier',
+						name: 'obj'
+					}
+				}]
+			});
+		});
+
 		it('removes falsy properties from an object', () => {
 			const obj: ObjectExpression = x`{
 				a: 1,
