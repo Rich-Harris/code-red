@@ -1,10 +1,11 @@
 import * as astring from 'astring';
-// import * as SourceMap from 'source-map';
+import * as SourceMap from 'source-map';
 import * as perisopic from 'periscopic';
 import { Node } from 'estree';
 
 type PrintOptions = {
 	file?: string;
+	sourceMapSource?: string;
 	getName?: (name: string) => string;
 };
 
@@ -36,20 +37,6 @@ export function print(node: Node, opts: PrintOptions = {}) {
 
 	const generator = Object.assign({}, astring.baseGenerator, {
 		handle(this: any, node: any, state: any) {
-			if (Array.isArray(node)) {
-				console.log(node);
-				throw new Error('we have an array where there probably should not be an array');
-				for (let i = 0; i < node.length; i += 1) {
-					this.handle(node[i], state);
-					if (i < node.length - 1) {
-						state.write(state.lineEnd);
-						state.write(state.indent);
-					}
-				}
-
-				return;
-			}
-
 			if (!node.type) {
 				console.log(`missing type: `, node);
 			}
@@ -130,17 +117,19 @@ export function print(node: Node, opts: PrintOptions = {}) {
 		}
 	});
 
-	// const map = new SourceMap.SourceMapGenerator({
-	// 	file: opts.file
-	// });
+	const map = new SourceMap.SourceMapGenerator({
+		file: opts.file
+	});
 
 	const code = astring.generate(node as any, {
 		indent: '\t',
-		generator
+		generator,
+		sourceMap: map,
+		sourceMapSource: opts.sourceMapSource || 'unknown'
 	});
 
 	return {
 		code,
-		map: null as any
+		map: JSON.parse(map.toString())
 	};
 }

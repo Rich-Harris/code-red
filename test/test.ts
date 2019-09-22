@@ -314,6 +314,33 @@ describe('codered', () => {
 			assert.equal(obj.properties.length, 1);
 			assert.equal((obj.properties[0].key as Identifier).name, 'a');
 		});
+
+		it('preserves locations of original nodes in a sourcemap', () => {
+			const answer = {
+				type: 'Literal',
+				value: 42,
+				raw: '42',
+				loc: {
+					start: { line: 10, column: 5 },
+					end: { line: 10, column: 7 }
+				}
+			};
+
+			const expression = x`console.log(${answer})`;
+
+			const { code, map } = print(expression, {
+				sourceMapSource: 'input.js'
+			});
+
+			assert.equal(code, `console.log(42)`);
+
+			assert.deepEqual(map, {
+				version: 3,
+				sources: ['input.js'],
+				names: [],
+				mappings: 'YASK'
+			});
+		});
 	});
 
 	describe('p', () => {
