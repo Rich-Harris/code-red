@@ -1,0 +1,1 @@
+module.exports = ({ b }) => b`const foo = #bar => #bar * 2`;

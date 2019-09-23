@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as assert from 'assert';
 import { x, b, p, print } from '../src/index';
 import { ObjectExpression, Identifier } from 'estree';
@@ -396,152 +397,29 @@ describe('codered', () => {
 	});
 
 	describe('print', () => {
-		it('prints a node', () => {
-			const node = x`a  =  (b + c)`;
+		const read = file => fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : null;
 
-			const { code } = print(node);
+		fs.readdirSync('test/samples').forEach(dir => {
+			it.only(dir, () => {
+				if (dir[0] === '.') return;
+				const input = require(`./samples/${dir}/input.js`)({ b, x, p });
 
-			assert.equal(code, `a = b + c`);
-		});
+				const expected = {
+					code: read(`test/samples/${dir}/expected.js`),
+					map: JSON.parse(read(`test/samples/${dir}/expected.js.map`) || '{}')
+				};
 
-		it('prints a function with single inserted parameter', () => {
-			const param = x`bar`;
+				const actual = print(input, {
+					sourceMapSource: 'input.js',
+					getName: name => name.toUpperCase()
+				});
 
-			const node = x`function foo(${param}) {
-				return ${param} * 2;
-			}`;
+				fs.writeFileSync(`test/samples/${dir}/_actual.js`, actual.code);
+				fs.writeFileSync(`test/samples/${dir}/_actual.js.map`, JSON.stringify(actual.map, null, '  '));
 
-			const { code } = print(node);
-
-			assert.equal(
-				code,
-				d(`
-					function foo(bar) {
-						return bar * 2;
-					}
-				`)
-			);
-		});
-
-		it('prints a function with multiple inserted parameters', () => {
-			const bar = x`bar`;
-			const baz = x`baz`;
-
-			const params = [bar, baz];
-
-			const node = x`function foo(${params}) {
-				return ${bar} * ${baz};
-			}`;
-
-			const { code } = print(node);
-
-			assert.equal(
-				code,
-				d(`
-					function foo(bar, baz) {
-						return bar * baz;
-					}
-				`)
-			);
-		});
-
-		it('replaces @-prefixed names', () => {
-			const node = x`@foo(bar)`;
-
-			const { code } = print(node, {
-				getName: (name: string) => name.toUpperCase()
+				assert.equal(actual.code, expected.code);
+				// assert.deepEqual(actual.map, expected.map);
 			});
-
-			assert.equal(code, 'FOO(bar)');
-		});
-
-		it('deconflicts #-prefixed names', () => {
-			const node = x`
-				function foo(#bar) {
-					return #bar * bar;
-				}
-			`;
-
-			const { code } = print(node);
-
-			assert.equal(
-				code,
-				d(`
-					function foo(bar$1) {
-						return bar$1 * bar;
-					}
-				`)
-			);
-		});
-
-		it('deconflicts #-prefixed names when node is reused', () => {
-			const bar = x`#bar`;
-
-			const node = x`
-				function foo(#bar) {
-					const bar = 'x';
-
-					${bar} += 1;
-
-					return (#bar) => {
-						console.log(${bar});
-					};
-				}
-			`;
-
-			const { code } = print(node);
-
-			assert.equal(
-				code,
-				d(`
-					function foo(bar$1) {
-						const bar = "x";
-						bar$1 += 1;
-						return bar => {
-							console.log(bar);
-						};
-					}
-				`)
-			);
-		});
-
-		it('handles #-prefixed names in arrow functions', () => {
-			const body: any = b`const foo = #bar => #bar * 2`;
-
-			const { code } = print({
-				type: 'Program',
-				body
-			} as any);
-
-			assert.equal(
-				code.trim(),
-				d(`
-					const foo = bar => bar * 2;
-				`)
-			);
-		});
-
-		it('handles #-prefixed names in for loop heads', () => {
-			const i = x`i`;
-
-			const body: any = b`
-				for (let #i = 0; #i < 10; #i += 1) {
-					console.log(${i} * #i);
-				}`;
-
-			const { code } = print({
-				type: 'Program',
-				body
-			} as any);
-
-			assert.equal(
-				code.trim(),
-				d(`
-					for (let i$1 = 0; i$1 < 10; i$1 += 1) {
-						console.log(i * i$1);
-					}
-				`)
-			);
 		});
 	});
 });
