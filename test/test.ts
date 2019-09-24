@@ -1,7 +1,10 @@
 import * as fs from 'fs';
 import * as assert from 'assert';
+import * as acorn from 'acorn';
+import { generateRandomJS } from 'eslump';
 import { x, b, p, print } from '../src/index';
-import { ObjectExpression, Identifier } from 'estree';
+import { ObjectExpression, Identifier, Node } from 'estree';
+import { walk } from 'estree-walker';
 
 const d = (str: string) => str.replace(/^\t{5}/gm, '').trim();
 
@@ -396,7 +399,7 @@ describe('codered', () => {
 		});
 	});
 
-	describe('print', () => {
+	describe.only('print', () => {
 		const read = file => fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : null;
 
 		fs.readdirSync('test/samples').forEach(dir => {
@@ -420,6 +423,49 @@ describe('codered', () => {
 				assert.equal(actual.code, expected.code);
 				// assert.deepEqual(actual.map, expected.map);
 			});
+		});
+
+		it.only('passes fuzz testing', () => {
+			for (let i = 0; i < 100; i += 1) {
+				const js = generateRandomJS({
+					sourceType: "module",
+					maxDepth: 7,
+					comments: false
+				});
+
+				const ast1: Node = acorn.parse(js, {
+					sourceType: 'module'
+				}) as Node;
+
+				let printed;
+
+				try {
+					printed = print(ast1);
+				} catch (err) {
+					console.log(js);
+					throw err;
+				}
+
+				const ast2: Node = acorn.parse(printed.code, {
+					sourceType: 'module'
+				}) as Node;
+
+				[ast1, ast2].forEach(ast => {
+					walk(ast, {
+						enter(node: any) {
+							delete node.start;
+							delete node.end;
+						}
+					});
+				});
+
+				try {
+					assert.deepEqual(ast1, ast2);
+				} catch (err) {
+					console.log(js);
+					throw err;
+				}
+			}
 		});
 	});
 });

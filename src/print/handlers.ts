@@ -52,7 +52,8 @@ import {
 	NewExpression,
 	MemberExpression,
 	MetaProperty,
-	ForInStatement
+	ForInStatement,
+	ImportSpecifier
 } from 'estree';
 
 type Chunk = {
@@ -200,7 +201,7 @@ const has_newline = (chunks: Chunk[]) => {
 	return false;
 };
 
-const length = (chunks: Chunk[]) => {
+const get_length = (chunks: Chunk[]) => {
 	let total = 0;
 	for (let i = 0; i < chunks.length; i += 1) {
 		total += chunks[i].content.length;
@@ -397,7 +398,7 @@ const handlers: Record<string, Handler> = {
 
 		const multiple_lines = (
 			params.some(has_newline) ||
-			(params.map(length).reduce(sum, 0) + (state.indent.length + params.length - 1) * 2) > 80
+			(params.map(get_length).reduce(sum, 0) + (state.indent.length + params.length - 1) * 2) > 80
 		);
 
 		const separator = c(multiple_lines ? `,\n${state.indent}` : ', ');
@@ -432,7 +433,7 @@ const handlers: Record<string, Handler> = {
 
 		const multiple_lines = (
 			declarators.some(has_newline) ||
-			(declarators.map(length).reduce(sum, 0) + (state.indent.length + declarators.length - 1) * 2) > 80
+			(declarators.map(get_length).reduce(sum, 0) + (state.indent.length + declarators.length - 1) * 2) > 80
 		);
 
 		const separator = c(multiple_lines ? `,\n${state.indent}` : ', ');
@@ -473,7 +474,71 @@ const handlers: Record<string, Handler> = {
 	},
 
 	ImportDeclaration(node: ImportDeclaration, state) {
-		throw new Error(`TODO ImportDeclaration`);
+		const chunks = [c('import ')];
+
+		const { length } = node.specifiers;
+		const source = handle(node.source, state);
+
+		if (length > 0) {
+			let i = 0;
+
+			while (i < length) {
+				if (i > 0) {
+					chunks.push(c(', '));
+				}
+
+				const specifier = node.specifiers[i];
+
+				if (specifier.type === 'ImportDefaultSpecifier') {
+					chunks.push(c(specifier.local.name, specifier));
+					i += 1;
+				} else if (specifier.type === 'ImportNamespaceSpecifier') {
+					chunks.push(c('* as ' + specifier.local.name, specifier));
+					i += 1;
+				} else {
+					break;
+				}
+			}
+
+			if (i < length) {
+				// we have named specifiers
+				const specifiers = node.specifiers.map((specifier: ImportSpecifier) => {
+					const name = handle(specifier.imported, state)[0];
+					const as = handle(specifier.local, state)[0];
+
+					if (name.content === as.content) {
+						return [as];
+					}
+
+					return [name, c(' as '), as];
+				});
+
+				const width = get_length(chunks) + specifiers.map(get_length).reduce(sum, 0) + (2 * specifiers.length) + 6 + get_length(source);
+
+				if (width > 80) {
+					chunks.push(
+						c(`{\n\t`),
+						...join(specifiers, c(',\n\t')),
+						c('\n}')
+					);
+				} else {
+					chunks.push(
+						c(`{ `),
+						...join(specifiers, c(', ')),
+						c(' }')
+					);
+				}
+			}
+
+			chunks.push(c(' from '));
+		}
+
+		chunks.push(
+			...source,
+			c(';')
+		);
+
+		return chunks;
 	},
 
 	ExportDefaultDeclaration(node: ExportDefaultDeclaration, state) {
@@ -481,7 +546,49 @@ const handlers: Record<string, Handler> = {
 	},
 
 	ExportNamedDeclaration(node: ExportNamedDeclaration, state) {
-		throw new Error(`TODO ExportNamedDeclaration`);
+		const chunks = [c('export ')];
+
+		if (node.declaration) {
+			chunks.push(...handle(node.declaration, state));
+		} else {
+			const specifiers = node.specifiers.map(specifier => {
+				const name = handle(specifier.local, state)[0];
+				const as = handle(specifier.exported, state)[0];
+
+				if (name.content === as.content) {
+					return [name];
+				}
+
+				return [name, c(' as '), as];
+			});
+
+			const width = 7 + specifiers.map(get_length).reduce(sum, 0) + 2 * specifiers.length;
+
+			if (width > 80) {
+				chunks.push(
+					c('{\n\t'),
+					...join(specifiers, c(',\n\t')),
+					c('\n}')
+				);
+			} else {
+				chunks.push(
+					c('{ '),
+					...join(specifiers, c(', ')),
+					c(' }')
+				);
+			}
+
+			if (node.source) {
+				chunks.push(
+					c(' from '),
+					...handle(node.source, state)
+				);
+			}
+		}
+
+		chunks.push(c(';'));
+
+		return chunks;
 	},
 
 	ExportAllDeclaration(node: ExportAllDeclaration, state) {
@@ -558,7 +665,7 @@ const handlers: Record<string, Handler> = {
 
 		const multiple_lines = (
 			properties.some(has_newline) ||
-			(properties.map(length).reduce(sum, 0) + (state.indent.length + properties.length - 1) * 2) > 80
+			(properties.map(get_length).reduce(sum, 0) + (state.indent.length + properties.length - 1) * 2) > 80
 		);
 
 		const separator = c(multiple_lines ? ',\n' + state.indent : ', ');
