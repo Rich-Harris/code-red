@@ -33,13 +33,15 @@ export function print(node: Node, opts: PrintOptions = {}): { code: string, map:
 		getName = (x: string) => x
 	} = opts;
 
-	let { map: scope_map, scope: current_scope } = perisopic.analyze(node);
+	let { map: scope_map, scope } = perisopic.analyze(node);
 	const deconflicted = new WeakMap();
 
 	const chunks = handle(node, {
 		indent: '',
 		getName,
-		scope_map
+		scope,
+		scope_map,
+		deconflicted
 	});
 
 	let code = '';

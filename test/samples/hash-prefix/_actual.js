@@ -1,3 +1,3 @@
-function foo(#bar) {
-	return #bar * bar;
+function foo(bar$1) {
+	return bar$1 * bar;
 }

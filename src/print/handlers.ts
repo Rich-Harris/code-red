@@ -51,7 +51,8 @@ import {
 	ConditionalExpression,
 	NewExpression,
 	MemberExpression,
-	MetaProperty
+	MetaProperty,
+	ForInStatement
 } from 'estree';
 
 type Chunk = {
@@ -60,13 +61,17 @@ type Chunk = {
 		start: { line: number; column: number; };
 		end: { line: number; column: number; };
 	};
+	has_newline: boolean;
 };
 
 type Handler = (node: Node, state: State) => Chunk[];
 
 type State = {
 	indent: string;
+	scope: any; // TODO import from periscopic
+	scope_map: WeakMap<Node, any>;
 	getName: (name: string) => string;
+	deconflicted: WeakMap<Node, Map<string, string>>;
 };
 
 export function handle(node: Node, state: State): Chunk[] {
@@ -77,6 +82,14 @@ export function handle(node: Node, state: State): Chunk[] {
 	}
 
 	return handler(node, state);
+}
+
+function c(content: string, node?: Node): Chunk {
+	return {
+		content,
+		loc: node && node.loc,
+		has_newline: /\n/.test(content)
+	};
 }
 
 const OPERATOR_PRECEDENCE = {
@@ -182,7 +195,7 @@ function needs_parens(node: Expression, parent: BinaryExpression, is_right: bool
 
 const has_newline = (chunks: Chunk[]) => {
 	for (let i = 0; i < chunks.length; i += 1) {
-		if (/\n/.test(chunks[i].content)) return true;
+		if (chunks[i].has_newline) return true;
 	}
 	return false;
 };
@@ -206,6 +219,27 @@ const join = (nodes: Chunk[][], separator: Chunk): Chunk[] => {
 	return joined;
 };
 
+const scoped = (fn: (node: Node, state: State) => Chunk[]) => {
+	return (node: Node, state: State) => {
+		const { scope } = state;
+		state.scope = state.scope_map.get(node);
+		const chunks = fn(node, state);
+		state.scope = scope;
+		return chunks;
+	};
+};
+
+const deconflict = (name: string, names: Set<string>) => {
+	const original = name;
+	let i = 1;
+
+	while (names.has(name)) {
+		name = `${original}$${i++}`;
+	}
+
+	return name;
+};
+
 const handlers: Record<string, Handler> = {
 	Program(node: Program, state) {
 		const chunks = [];
@@ -218,8 +252,8 @@ const handlers: Record<string, Handler> = {
 		return chunks;
 	},
 
-	BlockStatement(node: BlockStatement, state: State) {
-		const chunks = [{ content: `{\n${state.indent}\t` }];
+	BlockStatement: scoped((node: BlockStatement, state: State) => {
+		const chunks = [c(`{\n${state.indent}\t`)];
 
 		const body = node.body.map(statement => handle(statement, {
 			...state,
@@ -232,7 +266,9 @@ const handlers: Record<string, Handler> = {
 			const needs_padding = has_newline(body[i]);
 
 			if (i > 0) {
-				chunks.push({ content: needs_padding || needed_padding ? `\n\n${state.indent}\t` : `\n${state.indent}\t` });
+				chunks.push(
+					c(needs_padding || needed_padding ? `\n\n${state.indent}\t` : `\n${state.indent}\t`)
+				);
 			}
 
 			chunks.push(
@@ -242,10 +278,10 @@ const handlers: Record<string, Handler> = {
 			needed_padding = needs_padding;
 		}
 
-		chunks.push({ content: `\n${state.indent}}` });
+		chunks.push(c(`\n${state.indent}}`));
 
 		return chunks;
-	},
+	}),
 
 	EmptyStatement(node, state) {
 		return [];
@@ -259,15 +295,15 @@ const handlers: Record<string, Handler> = {
 		) {
 			// Should always have parentheses or is an AssignmentExpression to an ObjectPattern
 			return [
-				{ content: '(' },
+				c('('),
 				...handle(node.expression, state),
-				{ content: ');' }
+				c(');')
 			];
 		}
 
 		return [
 			...handle(node.expression, state),
-			{ content: ';' }
+			c(';')
 		];
 	},
 
@@ -297,9 +333,9 @@ const handlers: Record<string, Handler> = {
 
 	ReturnStatement(node: ReturnStatement, state) {
 		return [
-			{ content: 'return ' },
+			c('return '),
 			...handle(node.argument, state),
-			{ content: ';' }
+			c(';')
 		];
 	},
 
@@ -319,21 +355,40 @@ const handlers: Record<string, Handler> = {
 		throw new Error(`TODO DoWhileStatement`);
 	},
 
-	ForStatement(node: ForStatement, state) {
-		throw new Error(`TODO ForStatement`);
-	},
+	ForStatement: scoped((node: ForStatement, state) => {
+		const chunks = [c('for (')];
+
+		if (node.init) chunks.push(...handle(node.init, state));
+		chunks.push(
+			c(node.init && (node.init as VariableDeclaration).type === 'VariableDeclaration' ? ' ' : '; ')
+		);
+		if (node.test) chunks.push(...handle(node.test, state));
+		chunks.push(c('; '));
+		if (node.update) chunks.push(...handle(node.update, state));
+
+		chunks.push(
+			c(') '),
+			...handle(node.body, state)
+		);
+
+		return chunks;
+	}),
+
+	ForInStatement: scoped((node: ForInStatement, state) => {
+		throw new Error(`TODO ForInStatement`);
+	}),
 
 	DebuggerStatement(node, state) {
-		return [{ content: 'debugger', loc: node.loc }, { content: ';' }];
+		return [c('debugger', node), c(';')];
 	},
 
-	FunctionDeclaration(node: FunctionDeclaration, state) {
+	FunctionDeclaration: scoped((node: FunctionDeclaration, state) => {
 		const chunks = [];
 
-		if (node.async) chunks.push({ content: 'async '});
-		chunks.push({ content: node.generator ? 'function* ' : 'function ' });
-		if (node.id) chunks.push({ content: node.id.name, loc: node.id.loc });
-		chunks.push({ content: '(' });
+		if (node.async) chunks.push(c('async '));
+		chunks.push(c(node.generator ? 'function* ' : 'function '));
+		if (node.id) chunks.push(c(node.id.name, node.id));
+		chunks.push(c('('));
 
 		const params = node.params.map(p => handle(p, {
 			...state,
@@ -345,13 +400,13 @@ const handlers: Record<string, Handler> = {
 			(params.map(length).reduce(sum, 0) + (state.indent.length + params.length - 1) * 2) > 80
 		);
 
-		const separator = { content: multiple_lines ? `,\n${state.indent}` : ', ' };
+		const separator = c(multiple_lines ? `,\n${state.indent}` : ', ');
 
 		if (multiple_lines) {
 			chunks.push(
-				{ content: `\n${state.indent}\t` },
+				c(`\n${state.indent}\t`),
 				...join(params, separator),
-				{ content: `\n${state.indent}` }
+				c(`\n${state.indent}`)
 			);
 		} else {
 			chunks.push(
@@ -360,19 +415,57 @@ const handlers: Record<string, Handler> = {
 		}
 
 		chunks.push(
-			{ content: ') ' },
+			c(') '),
 			...handle(node.body, state)
+		);
+
+		return chunks;
+	}),
+
+	VariableDeclaration(node: VariableDeclaration, state) {
+		const chunks = [c(`${node.kind} `)];
+
+		const declarators = node.declarations.map(d => handle(d, {
+			...state,
+			indent: state.indent + '\t'
+		}));
+
+		const multiple_lines = (
+			declarators.some(has_newline) ||
+			(declarators.map(length).reduce(sum, 0) + (state.indent.length + declarators.length - 1) * 2) > 80
+		);
+
+		const separator = c(multiple_lines ? `,\n${state.indent}` : ', ');
+
+		if (multiple_lines) {
+			chunks.push(
+				c(`\n${state.indent}\t`),
+				...join(declarators, separator),
+				c(`\n${state.indent}`)
+			);
+		} else {
+			chunks.push(
+				...join(declarators, separator)
+			);
+		}
+
+		chunks.push(
+			c(';')
 		);
 
 		return chunks;
 	},
 
-	VariableDeclaration(node: VariableDeclaration, state) {
-		throw new Error(`TODO VariableDeclaration`);
-	},
-
 	VariableDeclarator(node: VariableDeclarator, state) {
-		throw new Error(`TODO VariableDeclarator`);
+		if (node.init) {
+			return [
+				...handle(node.id, state),
+				c(' = '),
+				...handle(node.init, state)
+			];
+		} else {
+			return handle(node.id, state);
+		}
 	},
 
 	ClassDeclaration(node: ClassDeclaration, state) {
@@ -399,15 +492,40 @@ const handlers: Record<string, Handler> = {
 		throw new Error(`TODO MethodDefinition`);
 	},
 
-	ArrowFunctionExpression(node: ArrowFunctionExpression, state) {
-		throw new Error(`TODO ArrowFunctionExpression`);
-	},
+	ArrowFunctionExpression: scoped((node: ArrowFunctionExpression, state) => {
+		const chunks = [];
+
+		if (node.async) chunks.push(c('async '));
+
+		if (node.params.length === 1 && node.params[0].type === 'Identifier') {
+			chunks.push(...handle(node.params[0], state));
+		} else {
+			throw new Error('TODO multiple params');
+		}
+
+		chunks.push(c(' => '));
+
+		if (node.body.type === 'ObjectExpression') {
+			chunks.push(
+				c('('),
+				...handle(node.body, state),
+				c(')')
+			);
+		} else {
+			chunks.push(...handle(node.body, state));
+		}
+
+		return chunks;
+	}),
+
 	ThisExpression(node, state) {
-		return [{ content: 'this', loc: node.loc }];
+		return [c('this', node)];
 	},
+
 	Super(node, state) {
-		return [{ content: 'super', loc: node.loc }];
+		return [c('super', node)];
 	},
+
 	RestElement(node: RestElement, state) {
 		throw new Error(`TODO RestElement`);
 	},
@@ -443,12 +561,12 @@ const handlers: Record<string, Handler> = {
 			(properties.map(length).reduce(sum, 0) + (state.indent.length + properties.length - 1) * 2) > 80
 		);
 
-		const separator = { content: multiple_lines ? ',\n' + state.indent : ', ' };
+		const separator = c(multiple_lines ? ',\n' + state.indent : ', ');
 
 		return [
-			{ content: multiple_lines ? `{\n${state.indent}` : `{ ` },
+			c(multiple_lines ? `{\n${state.indent}` : `{ `),
 			...join(properties, separator) as Chunk[],
-			{ content: multiple_lines ? `\n${state.indent}}` : ` }` }
+			c(multiple_lines ? `\n${state.indent}}` : ` }`)
 		];
 	},
 
@@ -467,7 +585,7 @@ const handlers: Record<string, Handler> = {
 
 		return [
 			...key,
-			{ content: ': ' },
+			c(': '),
 			...value
 		];
 	},
@@ -491,7 +609,7 @@ const handlers: Record<string, Handler> = {
 	AssignmentExpression(node: AssignmentExpression, state) {
 		return [
 			...handle(node.left, state),
-			{ content: ` ${node.operator} ` },
+			c(` ${node.operator} `),
 			...handle(node.right, state)
 		];
 	},
@@ -506,26 +624,26 @@ const handlers: Record<string, Handler> = {
 		const is_in = node.operator === 'in'
 		if (is_in) {
 			// Avoids confusion in `for` loops initializers
-			chunks.push({ content: '(' });
+			chunks.push(c('('));
 		}
 
 		if (needs_parens(node.left, node, false)) {
 			chunks.push(
-				{ content: '(' },
+				c('('),
 				...handle(node.left, state),
-				{ content: ')' }
+				c(')')
 			);
 		} else {
 			chunks.push(...handle(node.left, state));
 		}
 
-		chunks.push({ content: ` ${node.operator} ` });
+		chunks.push(c(` ${node.operator} `));
 
 		if (needs_parens(node.right, node, true)) {
 			chunks.push(
-				{ content: '(' },
+				c('('),
 				...handle(node.right, state),
-				{ content: ')' }
+				c(')')
 			);
 		} else {
 			chunks.push(...handle(node.right, state));
@@ -550,9 +668,9 @@ const handlers: Record<string, Handler> = {
 			EXPRESSIONS_PRECEDENCE.CallExpression
 		) {
 			chunks.push(
-				{ content: '(' },
+				c('('),
 				...handle(node.callee, state),
-				{ content: ')' }
+				c(')')
 			);
 		} else {
 			chunks.push(...handle(node.callee, state));
@@ -564,20 +682,45 @@ const handlers: Record<string, Handler> = {
 		}));
 
 		const separator = args.some(has_newline) // TODO or length exceeds 80
-			? { content: ',\n' + state.indent }
-			: { content: ', ' };
+			? c(',\n' + state.indent)
+			: c(', ');
 
 		chunks.push(
-			{ content: '(' },
+			c('('),
 			...join(args, separator) as Chunk[],
-			{ content: ')' }
+			c(')')
 		);
 
 		return chunks;
 	},
 
 	MemberExpression(node: MemberExpression, state) {
-		throw new Error(`TODO MemberExpression`);
+		const chunks = [];
+
+		if (EXPRESSIONS_PRECEDENCE[node.object.type] < EXPRESSIONS_PRECEDENCE.MemberExpression) {
+			chunks.push(
+				c('('),
+				...handle(node.object, state),
+				c(')')
+			);
+		} else {
+			chunks.push(...handle(node.object, state));
+		}
+
+		if (node.computed) {
+			chunks.push(
+				c('['),
+				...handle(node.property, state),
+				c(']')
+			);
+		} else {
+			chunks.push(
+				c('.'),
+				...handle(node.property, state)
+			);
+		}
+
+		return chunks;
 	},
 
 	MetaProperty(node: MetaProperty, state) {
@@ -586,22 +729,45 @@ const handlers: Record<string, Handler> = {
 
 	Identifier(node: Identifier, state) {
 		let name = node.name;
-		if (name[0] === '@') name = state.getName(name.slice(1));
-		return [{ content: name, loc: node.loc }];
+
+		if (name[0] === '@') {
+			name = state.getName(name.slice(1));
+		} else if (node.name[0] === '#') {
+			const owner = state.scope.find_owner(node.name);
+
+			if (!owner) {
+				console.log(node);
+				throw new Error(`Could not find owner for node`);
+			}
+
+			if (!state.deconflicted.has(owner)) {
+				state.deconflicted.set(owner, new Map());
+			}
+
+			const deconflict_map = state.deconflicted.get(owner);
+
+			if (!deconflict_map.has(node.name)) {
+				deconflict_map.set(node.name, deconflict(node.name.slice(1), owner.references));
+			}
+
+			name = deconflict_map.get(node.name);
+		}
+
+		return [c(name, node)];
 	},
 
 	Literal(node: Literal | RegExpLiteral, state) {
 		// TODO
 		if (typeof node.value === 'string') {
-			return [{ content: JSON.stringify(node.value), loc: node.loc }];
+			return [c(JSON.stringify(node.value), node)];
 		}
 
 		const { regex } = node as RegExpLiteral; // TODO is this right?
 		if (regex) {
-			return [{ content: `/${regex.pattern}/${regex.flags}`, loc: node.loc }];
+			return [c(`/${regex.pattern}/${regex.flags}`, node)];
 		}
 
-		return [{ content: String(node.value), loc: node.loc }];
+		return [c(String(node.value), node)];
 	},
 
 	RegExpLiteral(node: RegExpLiteral, state) {
@@ -609,7 +775,7 @@ const handlers: Record<string, Handler> = {
 	},
 };
 
-handlers.ForInStatement = handlers.ForOfStatement = handlers.ForStatement;
+handlers.ForOfStatement = handlers.ForInStatement;
 handlers.FunctionExpression = handlers.FunctionDeclaration;
 handlers.ClassExpression = handlers.ClassDeclaration;
 handlers.ClassBody = handlers.BlockStatement;
