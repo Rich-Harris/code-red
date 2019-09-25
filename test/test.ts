@@ -442,7 +442,7 @@ describe('codered', () => {
 				try {
 					printed = print(ast1);
 				} catch (err) {
-					console.log(js);
+					fs.writeFileSync(`test/fuzz/input.js`, js);
 					throw err;
 				}
 
@@ -462,7 +462,7 @@ describe('codered', () => {
 				try {
 					assert.deepEqual(ast1, ast2);
 				} catch (err) {
-					console.log(js);
+					fs.writeFileSync(`test/fuzz/input.js`, js);
 					throw err;
 				}
 			}

@@ -1,5 +1,3 @@
-import * as astring from 'astring';
-import * as SourceMap from 'source-map';
 import * as perisopic from 'periscopic';
 import { handle } from './handlers';
 import { Node, Program } from 'estree';
@@ -54,6 +52,13 @@ export function print(node: Node, opts: PrintOptions = {}): { code: string, map:
 
 	return {
 		code,
-		map: null
+		map: {
+			version: 3,
+			names: [],
+			// TODO
+			sources: [],
+			sourcesContent: [],
+			mappings: ''
+		}
 	};
 }
