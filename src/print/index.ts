@@ -8,17 +8,6 @@ type PrintOptions = {
 	getName?: (name: string) => string;
 };
 
-function deconflict(name: string, names: Set<string>) {
-	const original = name;
-	let i = 1;
-
-	while (names.has(name)) {
-		name = `${original}$${i++}`;
-	}
-
-	return name;
-}
-
 export function print(node: Node, opts: PrintOptions = {}): { code: string, map: any } {
 	if (Array.isArray(node)) {
 		return print({

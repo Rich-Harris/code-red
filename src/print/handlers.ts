@@ -784,7 +784,7 @@ const handlers: Record<string, Handler> = {
 	},
 
 	RestElement(node: RestElement, state) {
-		throw new Error(`TODO RestElement`);
+		return [c('...'), ...handle(node.argument, state)];
 	},
 
 	YieldExpression(node: YieldExpression, state) {
@@ -792,7 +792,11 @@ const handlers: Record<string, Handler> = {
 	},
 
 	AwaitExpression(node: AwaitExpression, state) {
-		throw new Error(`TODO AwaitExpression`);
+		if (node.argument) {
+			return [c('await '), ...handle(node.argument, state)];
+		}
+
+		return [c('await')];
 	},
 
 	TemplateLiteral(node: TemplateLiteral, state) {
@@ -824,10 +828,22 @@ const handlers: Record<string, Handler> = {
 	ArrayExpression(node: ArrayExpression, state) {
 		const chunks = [c('[')];
 
-		const elements = node.elements.map(element => handle(element, {
-			...state,
-			indent: state.indent + '\t'
-		}));
+		const elements: Chunk[][] = [];
+		let sparse_commas: Chunk[] = [];
+
+		for (let i = 0; i < node.elements.length; i += 1) {
+			// can't use map/forEach because of sparse arrays
+			const element = node.elements[i];
+			if (element) {
+				elements.push([...sparse_commas, ...handle(element, {
+					...state,
+					indent: state.indent + '\t'
+				})]);
+				sparse_commas = [];
+			} else {
+				sparse_commas.push(c(','));
+			}
+		}
 
 		const multiple_lines = (
 			elements.some(has_newline) ||
@@ -836,12 +852,13 @@ const handlers: Record<string, Handler> = {
 
 		if (multiple_lines) {
 			chunks.push(
-				c(`\n${state.indent}[`),
-				...join(elements, c(`\n${state.indent}\t`)),
-				c(`\n${state.indent}]`)
+				c(`\n${state.indent}\t`),
+				...join(elements, c(`,\n${state.indent}\t`)),
+				c(`\n${state.indent}`),
+				...sparse_commas
 			);
 		} else {
-			chunks.push(...join(elements, c(', ')));
+			chunks.push(...join(elements, c(', ')), ...sparse_commas);
 		}
 
 		chunks.push(c(']'));
@@ -891,6 +908,19 @@ const handlers: Record<string, Handler> = {
 			throw new Error(`TODO ${node.kind}`);
 		}
 
+		if (node.computed) {
+			return [
+				c('['),
+				...key,
+				c(']: '),
+				...value
+			];
+		}
+
+		if (key.length === 1 && value.length === 1 && key[0].content === value[0].content) {
+			return value;
+		}
+
 		return [
 			...key,
 			c(': '),
@@ -912,7 +942,13 @@ const handlers: Record<string, Handler> = {
 	},
 
 	SequenceExpression(node: SequenceExpression, state) {
-		throw new Error(`TODO SequenceExpression`);
+		const expressions = node.expressions.map(e => handle(e, state));
+
+		return [
+			c('('),
+			...join(expressions, c(', ')),
+			c(')')
+		];
 	},
 
 	UnaryExpression(node: UnaryExpression, state) {
@@ -939,7 +975,9 @@ const handlers: Record<string, Handler> = {
 	},
 
 	UpdateExpression(node: UpdateExpression, state) {
-		throw new Error(`TODO UpdateExpression`);
+		return node.prefix
+			? [c(node.operator), ...handle(node.argument, state)]
+			: [...handle(node.argument, state), c(node.operator)];
 	},
 
 	AssignmentExpression(node: AssignmentExpression, state) {

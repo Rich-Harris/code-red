@@ -28,7 +28,7 @@ const flatten_body = (array: any[], target: any[]) => {
 		}
 
 		if (statement.type === 'ExpressionStatement') {
-			if (!statement.expression) continue;
+			if (statement.expression === EMPTY) continue;
 
 			if (Array.isArray(statement.expression)) {
 				flatten_body(statement.expression, target);
@@ -46,7 +46,7 @@ const flatten_properties = (array: any[], target: any[]) => {
 	for (let i = 0; i < array.length; i += 1) {
 		const property = array[i];
 
-		if (!property.value) continue;
+		if (property.value === EMPTY) continue;
 
 		if (property.key === property.value && Array.isArray(property.key)) {
 			flatten_properties(property.key, target);
@@ -63,7 +63,7 @@ const flatten = (nodes: any[], target: any[]) => {
 	for (let i = 0; i < nodes.length; i += 1) {
 		const node = nodes[i];
 
-		if (!node) continue;
+		if (node === EMPTY) continue;
 
 		if (Array.isArray(node)) {
 			flatten(node, target);
@@ -75,6 +75,8 @@ const flatten = (nodes: any[], target: any[]) => {
 
 	return target;
 }
+
+const EMPTY = { type: 'Empty' };
 
 const inject = (node: Node, values: any[]) => {
 	walk(node, {
@@ -98,9 +100,9 @@ const inject = (node: Node, values: any[]) => {
 							}
 
 							if (index === null) {
-								(parent as any)[key] = value;
+								(parent as any)[key] = value || EMPTY;
 							} else {
-								(parent as any)[key][index] = value;
+								(parent as any)[key][index] = value || EMPTY;
 							}
 						}
 					} else {
@@ -143,6 +145,12 @@ const inject = (node: Node, values: any[]) => {
 
 			if (node.type === 'ImportDeclaration' || node.type === 'ExportNamedDeclaration') {
 				node.specifiers = flatten(node.specifiers, []);
+			}
+
+			if (node.type === 'ForStatement') {
+				node.init = node.init === EMPTY ? null : node.init;
+				node.test = node.test === EMPTY ? null : node.test;
+				node.update = node.update === EMPTY ? null : node.update;
 			}
 		}
 	});
