@@ -887,8 +887,13 @@ const handlers: Record<string, Handler> = {
 	},
 
 	Property(node: Property, state) {
-		const key = handle(node.key, state);
 		const value = handle(node.value, state);
+
+		if (node.key === node.value) {
+			return value;
+		}
+
+		const key = handle(node.key, state);
 
 		if (key.length === 1 && value.length === 1 && key[0].content === value[0].content) {
 			return value;
