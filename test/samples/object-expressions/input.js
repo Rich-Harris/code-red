@@ -8,5 +8,13 @@ module.exports = ({ b, p }) => {
 			baz: qux
 		};
 
-		obj = { ${x} }`;
+		obj = { ${x} }
+
+		obj = {
+			method: function() {
+				console.log('hello');
+			}
+		}
+
+		empty = {  }`;
 };

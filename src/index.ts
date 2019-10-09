@@ -152,6 +152,10 @@ const inject = (node: Node, values: any[]) => {
 				node.test = node.test === EMPTY ? null : node.test;
 				node.update = node.update === EMPTY ? null : node.update;
 			}
+
+			if (node.type === 'ExpressionStatement' && !/Expression$/.test(node.expression.type)) {
+				this.replace(node.expression);
+			}
 		}
 	});
 }

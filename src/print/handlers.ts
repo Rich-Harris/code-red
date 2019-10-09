@@ -867,6 +867,10 @@ const handlers: Record<string, Handler> = {
 	},
 
 	ObjectExpression(node: ObjectExpression, state) {
+		if (node.properties.length === 0) {
+			return [c('{}')];
+		}
+
 		const properties = node.properties.map(p => handle(p, {
 			...state,
 			indent: state.indent + '\t'
@@ -899,7 +903,7 @@ const handlers: Record<string, Handler> = {
 			return value;
 		}
 
-		if (node.method) {
+		if (node.method || (node.value.type === 'FunctionExpression' && !node.value.id)) {
 			return [
 				...key,
 				c('('),
