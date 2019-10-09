@@ -27,11 +27,16 @@ const flatten_body = (array: any[], target: any[]) => {
 			continue;
 		}
 
-		if (statement === EMPTY) continue;
-
 		if (statement.type === 'ExpressionStatement') {
+			if (statement.expression === EMPTY) continue;
+
 			if (Array.isArray(statement.expression)) {
 				flatten_body(statement.expression, target);
+				continue;
+			}
+
+			if (!/Expression$/.test(statement.expression.type)) {
+				target.push(statement.expression);
 				continue;
 			}
 		}
@@ -151,10 +156,6 @@ const inject = (node: Node, values: any[]) => {
 				node.init = node.init === EMPTY ? null : node.init;
 				node.test = node.test === EMPTY ? null : node.test;
 				node.update = node.update === EMPTY ? null : node.update;
-			}
-
-			if (node.type === 'ExpressionStatement' && !/Expression$/.test(node.expression.type)) {
-				this.replace(node.expression);
 			}
 		}
 	});
