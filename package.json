@@ -39,6 +39,7 @@
     "astring": "github:Rich-Harris/astring#generic-handler",
     "is-reference": "^1.1.3",
     "periscopic": "^1.0.1",
-    "source-map": "^0.7.3"
+    "source-map": "^0.7.3",
+    "sourcemap-codec": "^1.4.6"
   }
 }

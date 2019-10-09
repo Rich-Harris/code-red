@@ -1,10 +1,12 @@
 import * as perisopic from 'periscopic';
 import { handle } from './handlers';
 import { Node, Program } from 'estree';
+import { encode } from 'sourcemap-codec';
 
 type PrintOptions = {
 	file?: string;
 	sourceMapSource?: string;
+	sourceMapContent?: string;
 	getName?: (name: string) => string;
 };
 
@@ -31,23 +33,57 @@ export function print(node: Node, opts: PrintOptions = {}): { code: string, map:
 		deconflicted
 	});
 
+	type Segment = [number, number, number, number];
+
 	let code = '';
-	let mappings = [];
+	let mappings: Segment[][] = [];
+	let current_line: Segment[] = [];
+	let current_column = 0;
 
 	for (let i = 0; i < chunks.length; i += 1) {
-		// TODO add mappings
-		code += chunks[i].content;
+		const chunk = chunks[i];
+
+		code += chunk.content;
+
+		if (chunk.loc) {
+			current_line.push([
+				current_column,
+				0, // source index is always zero
+				chunk.loc.start.line,
+				chunk.loc.start.column,
+			]);
+		}
+
+		for (let i = 0; i < chunk.content.length; i += 1) {
+			if (chunk.content[i] === '\n') {
+				mappings.push(current_line);
+				current_line = [];
+				current_column = 0;
+			} else {
+				current_column += 1;
+			}
+		}
+
+		if (chunk.loc) {
+			current_line.push([
+				current_column,
+				0, // source index is always zero
+				chunk.loc.end.line,
+				chunk.loc.end.column,
+			]);
+		}
 	}
+
+	mappings.push(current_line);
 
 	return {
 		code,
 		map: {
 			version: 3,
 			names: [],
-			// TODO
-			sources: [],
-			sourcesContent: [],
-			mappings: ''
+			sources: [opts.sourceMapSource || null],
+			sourcesContent: [opts.sourceMapContent || null],
+			mappings: encode(mappings)
 		}
 	};
 }
