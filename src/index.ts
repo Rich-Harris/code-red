@@ -27,9 +27,9 @@ const flatten_body = (array: any[], target: any[]) => {
 			continue;
 		}
 
-		if (statement.type === 'ExpressionStatement') {
-			if (statement.expression === EMPTY) continue;
+		if (statement === EMPTY) continue;
 
+		if (statement.type === 'ExpressionStatement') {
 			if (Array.isArray(statement.expression)) {
 				flatten_body(statement.expression, target);
 				continue;
