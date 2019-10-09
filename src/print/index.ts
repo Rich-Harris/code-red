@@ -49,7 +49,7 @@ export function print(node: Node, opts: PrintOptions = {}): { code: string, map:
 			current_line.push([
 				current_column,
 				0, // source index is always zero
-				chunk.loc.start.line,
+				chunk.loc.start.line - 1,
 				chunk.loc.start.column,
 			]);
 		}
@@ -68,7 +68,7 @@ export function print(node: Node, opts: PrintOptions = {}): { code: string, map:
 			current_line.push([
 				current_column,
 				0, // source index is always zero
-				chunk.loc.end.line,
+				chunk.loc.end.line - 1,
 				chunk.loc.end.column,
 			]);
 		}

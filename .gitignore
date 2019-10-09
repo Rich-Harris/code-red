@@ -2,3 +2,4 @@
 node_modules
 *.d.ts
 dist
+test/fuzz
