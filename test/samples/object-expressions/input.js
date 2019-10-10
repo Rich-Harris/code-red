@@ -16,5 +16,7 @@ module.exports = ({ b, p }) => {
 			}
 		}
 
-		empty = {  }`;
+		empty = {  }
+
+		opts = opts || {}`; // TODO would be nice if the {} didn't become ({})
 };

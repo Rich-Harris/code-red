@@ -140,7 +140,7 @@ const EXPRESSIONS_PRECEDENCE: Record<string, number> = {
 	ArrowFunctionExpression: NEEDS_PARENTHESES,
 	ClassExpression: NEEDS_PARENTHESES,
 	FunctionExpression: NEEDS_PARENTHESES,
-	ObjectExpression: NEEDS_PARENTHESES,
+	ObjectExpression: NEEDS_PARENTHESES, // TODO this results in e.g. `o = o || {}` => `o = o || ({})`
 	UpdateExpression: 16,
 	UnaryExpression: 15,
 	BinaryExpression: 14,
@@ -236,11 +236,10 @@ const join = (nodes: Chunk[][], separator: Chunk): Chunk[] => {
 
 const scoped = (fn: (node: Node, state: State) => Chunk[]) => {
 	return (node: Node, state: State) => {
-		const { scope } = state;
-		state.scope = state.scope_map.get(node);
-		const chunks = fn(node, state);
-		state.scope = scope;
-		return chunks;
+		return fn(node, {
+			...state,
+			scope: state.scope_map.get(node)
+		});
 	};
 };
 
@@ -904,6 +903,11 @@ const handlers: Record<string, Handler> = {
 		}
 
 		if (node.method || (node.value.type === 'FunctionExpression' && !node.value.id)) {
+			state = {
+				...state,
+				scope: state.scope_map.get(node.value)
+			};
+
 			return [
 				...key,
 				c('('),
@@ -1188,7 +1192,6 @@ const handlers: Record<string, Handler> = {
 			const owner = state.scope.find_owner(node.name);
 
 			if (!owner) {
-				console.log(node);
 				throw new Error(`Could not find owner for node`);
 			}
 

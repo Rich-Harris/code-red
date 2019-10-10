@@ -86,9 +86,6 @@ const EMPTY = { type: 'Empty' };
 const inject = (node: Node, values: any[]) => {
 	walk(node, {
 		leave(node, parent, key, index) {
-			delete (node as any).start;
-			delete (node as any).end;
-
 			if (node.type === 'Identifier') {
 				re.lastIndex = 0;
 				const match = re.exec(node.name);
