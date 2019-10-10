@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.16
+
+* Improve some aspects of generated code
+
 ## 0.0.15
 
 * Flatten patterns

@@ -8,5 +8,4 @@ obj = {
 };
 
 empty = {};
-
 opts = opts || ({});
