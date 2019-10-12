@@ -288,7 +288,7 @@ const handle_var_declaration = (node: VariableDeclaration, state: State) => {
 
 	const declarators = node.declarations.map(d => handle(d, {
 		...state,
-		indent: state.indent + '\t'
+		indent: state.indent + (node.declarations.length === 1 ? '' : '\t')
 	}));
 
 	const multiple_lines = (
@@ -296,14 +296,10 @@ const handle_var_declaration = (node: VariableDeclaration, state: State) => {
 		(declarators.map(get_length).reduce(sum, 0) + (state.indent.length + declarators.length - 1) * 2) > 80
 	);
 
-	const separator = c(multiple_lines ? `,\n${state.indent}` : ', ');
+	const separator = c(multiple_lines ? `,\n${state.indent}\t` : ', ');
 
 	if (multiple_lines) {
-		chunks.push(
-			c(`\n${state.indent}\t`),
-			...join(declarators, separator),
-			c(`\n${state.indent}`)
-		);
+		chunks.push(...join(declarators, separator));
 	} else {
 		chunks.push(
 			...join(declarators, separator)
@@ -877,7 +873,7 @@ const handlers: Record<string, Handler> = {
 
 		const multiple_lines = (
 			properties.some(has_newline) ||
-			(properties.map(get_length).reduce(sum, 0) + (state.indent.length + properties.length - 1) * 2) > 80
+			(properties.map(get_length).reduce(sum, 0) + (state.indent.length + properties.length - 1) * 2) > 40
 		);
 
 		const separator = c(multiple_lines ? `,\n${state.indent}\t` : ', ');
@@ -893,6 +889,16 @@ const handlers: Record<string, Handler> = {
 		const value = handle(node.value, state);
 
 		if (node.key === node.value) {
+			return value;
+		}
+
+		// special case
+		if (
+			!node.computed &&
+			node.value.type === 'AssignmentPattern' &&
+			node.value.left.type === 'Identifier' &&
+			node.value.left.name === (node.key as Identifier).name
+		) {
 			return value;
 		}
 
@@ -1132,20 +1138,29 @@ const handlers: Record<string, Handler> = {
 			chunks.push(...handle(node.callee, state));
 		}
 
-		const args = node.arguments.map(arg => handle(arg, {
-			...state,
-			indent: state.indent + '\t'
-		}));
+		const args = node.arguments.map(arg => handle(arg, state));
 
-		const separator = args.some(has_newline) // TODO or length exceeds 80
-			? c(',\n' + state.indent)
-			: c(', ');
+		const multiple_lines = args.slice(0, -1).some(has_newline); // TODO or length exceeds 80
 
-		chunks.push(
-			c('('),
-			...join(args, separator) as Chunk[],
-			c(')')
-		);
+		if (multiple_lines) {
+			// need to handle args again. TODO find alternative approach?
+			const args = node.arguments.map(arg => handle(arg, {
+				...state,
+				indent: `${state.indent}\t`
+			}));
+
+			chunks.push(
+				c(`(\n${state.indent}\t`),
+				...join(args, c(`,\n${state.indent}\t`)),
+				c(`\n${state.indent})`)
+			);
+		} else {
+			chunks.push(
+				c('('),
+				...join(args, c(', ')),
+				c(')')
+			);
+		}
 
 		return chunks;
 	},
