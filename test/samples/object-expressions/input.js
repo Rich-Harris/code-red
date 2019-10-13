@@ -18,5 +18,23 @@ module.exports = ({ b, p }) => {
 
 		empty = {  }
 
-		opts = opts || {}`; // TODO would be nice if the {} didn't become ({})
+		opts = opts || {}
+
+		obj = {
+			get foo() {
+				return _foo;
+			},
+
+			set foo(value) {
+				_foo = value;
+			},
+
+			get [foo]() {
+				return _foo;
+			},
+
+			set [foo](value) {
+				_foo = value;
+			}
+		}`; // TODO would be nice if the {} didn't become ({})
 };

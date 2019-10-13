@@ -1,1 +1,0 @@
-module.exports = ({ x }) => x`/(?:^\xb1\X\u765F)?/`;

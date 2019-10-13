@@ -385,11 +385,45 @@ const handlers: Record<string, Handler> = {
 	},
 
 	WithStatement(node: WithStatement, state) {
-		throw new Error(`TODO WithStatement`);
+		return [
+			c('with ('),
+			...handle(node.object, state),
+			c(') '),
+			...handle(node.body, state)
+		];
 	},
 
 	SwitchStatement(node: SwitchStatement, state) {
-		throw new Error(`TODO SwitchStatement`);
+		const chunks = [
+			c('switch ('),
+			...handle(node.discriminant, state),
+			c(') {')
+		];
+
+		const child_state = { ...state, indent: `${state.indent}\t\t` };
+
+		node.cases.forEach(block => {
+			if (block.test) {
+				chunks.push(
+					c(`\n${state.indent}\tcase `),
+					...handle(block.test, { ...state, indent: `${state.indent}\t` }),
+					c(':')
+				);
+			} else {
+				chunks.push(c(`\n${state.indent}\tdefault:`))
+			}
+
+			block.consequent.forEach(statement => {
+				chunks.push(
+					c(`\n${state.indent}\t\t`),
+					...handle(statement, { ...state, indent: `${state.indent}\t\t` })
+				);
+			});
+		});
+
+		chunks.push(c(`\n${state.indent}}`));
+
+		return chunks;
 	},
 
 	ReturnStatement(node: ReturnStatement, state) {
@@ -413,7 +447,30 @@ const handlers: Record<string, Handler> = {
 	},
 
 	TryStatement(node: TryStatement, state) {
-		throw new Error(`TODO TryStatement`);
+		const chunks = [
+			c('try '),
+			...handle(node.block, state)
+		];
+
+		if (node.handler) {
+			if (node.handler.param) {
+				chunks.push(
+					c(' catch('),
+					...handle(node.handler.param, state),
+					c(') ')
+				);
+			} else {
+				chunks.push(c(' catch '));
+			}
+
+			chunks.push(...handle(node.handler.body, state));
+		}
+
+		if (node.finalizer) {
+			chunks.push(c(' finally '), ...handle(node.finalizer, state));
+		}
+
+		return chunks;
 	},
 
 	WhileStatement(node: WhileStatement, state) {
@@ -791,7 +848,11 @@ const handlers: Record<string, Handler> = {
 	},
 
 	YieldExpression(node: YieldExpression, state) {
-		throw new Error(`TODO YieldExpression`);
+		if (node.argument) {
+			return [c(node.delegate ? `yield* ` : `yield `), ...handle(node.argument, state)];
+		}
+
+		return [c(node.delegate ? `yield*` : `yield`)];
 	},
 
 	AwaitExpression(node: AwaitExpression, state) {
@@ -825,7 +886,7 @@ const handlers: Record<string, Handler> = {
 	},
 
 	TaggedTemplateExpression(node: TaggedTemplateExpression, state) {
-		throw new Error(`TODO TaggedTemplateExpression`);
+		return handle(node.tag, state).concat(handle(node.quasi, state));
 	},
 
 	ArrayExpression(node: ArrayExpression, state) {
@@ -922,17 +983,19 @@ const handlers: Record<string, Handler> = {
 				scope: state.scope_map.get(node.value)
 			};
 
-			return [
-				...key,
+			const chunks = node.kind !== 'init'
+				? [c(`${node.kind} `)]
+				: [];
+
+			chunks.push(
+				...(node.computed ? [c('['), ...key, c(']')] : key),
 				c('('),
 				...join((node.value as FunctionExpression).params.map(param => handle(param, state)), c(', ')),
 				c(') '),
 				...handle((node.value as FunctionExpression).body, state)
-			];
-		}
+			);
 
-		if (node.kind !== 'init') {
-			throw new Error(`TODO ${node.kind}`);
+			return chunks;
 		}
 
 		if (node.computed) {
@@ -1203,7 +1266,7 @@ const handlers: Record<string, Handler> = {
 	},
 
 	MetaProperty(node: MetaProperty, state) {
-		throw new Error(`TODO MetaProperty`);
+		return [...handle(node.meta, state), c('.'), ...handle(node.property, state)];
 	},
 
 	Identifier(node: Identifier, state) {
@@ -1235,9 +1298,12 @@ const handlers: Record<string, Handler> = {
 	},
 
 	Literal(node: Literal | RegExpLiteral, state) {
-		// TODO
 		if (typeof node.value === 'string') {
-			return [c(JSON.stringify(node.value), node)];
+			return [
+				// TODO do we need to handle weird unicode characters somehow?
+				// str.replace(/\\u(\d{4})/g, (m, n) => String.fromCharCode(+n))
+				c(JSON.stringify(node.value), node)
+			];
 		}
 
 		const { regex } = node as RegExpLiteral; // TODO is this right?
@@ -1246,11 +1312,7 @@ const handlers: Record<string, Handler> = {
 		}
 
 		return [c(String(node.value), node)];
-	},
-
-	RegExpLiteral(node: RegExpLiteral, state) {
-		throw new Error(`TODO RegExpLiteral`);
-	},
+	}
 };
 
 handlers.ForOfStatement = handlers.ForInStatement;

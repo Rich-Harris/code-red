@@ -425,7 +425,7 @@ describe('codered', () => {
 			});
 		});
 
-		it.only('passes fuzz testing', () => {
+		it.skip('passes fuzz testing', () => {
 			for (let i = 0; i < 100; i += 1) {
 				const js = generateRandomJS({
 					sourceType: "module",
@@ -433,17 +433,22 @@ describe('codered', () => {
 					comments: false
 				});
 
-				const ast1: Node = acorn.parse(js, {
-					sourceType: 'module',
-					ecmaVersion: 2019
-				}) as Node;
+				let ast1: Node;
+				try {
+					ast1 = acorn.parse(js, {
+						sourceType: 'module',
+						ecmaVersion: 2019
+					}) as Node;
+				} catch {
+					continue;
+				}
 
 				let printed;
 
 				try {
 					printed = print(ast1);
 				} catch (err) {
-					fs.writeFileSync(`test/fuzz/input.js`, js);
+					fs.writeFileSync(`test/fuzz/report.js`, js);
 					throw err;
 				}
 
@@ -464,7 +469,7 @@ describe('codered', () => {
 				try {
 					assert.deepEqual(ast1, ast2);
 				} catch (err) {
-					fs.writeFileSync(`test/fuzz/input.js`, js);
+					fs.writeFileSync(`test/fuzz/report.js`, `// input\n${js}\n\n// output\n${printed.code}`);
 					throw err;
 				}
 			}
