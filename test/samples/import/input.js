@@ -3,5 +3,7 @@ module.exports = ({ b }) => {
 
 	return b`
 	import { foo as #foo } from 'x';
-	${bar};`
+	${bar};
+
+	import('baz').then(blah)`
 };

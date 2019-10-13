@@ -434,7 +434,8 @@ describe('codered', () => {
 				});
 
 				const ast1: Node = acorn.parse(js, {
-					sourceType: 'module'
+					sourceType: 'module',
+					ecmaVersion: 2019
 				}) as Node;
 
 				let printed;
@@ -447,7 +448,8 @@ describe('codered', () => {
 				}
 
 				const ast2: Node = acorn.parse(printed.code, {
-					sourceType: 'module'
+					sourceType: 'module',
+					ecmaVersion: 2019
 				}) as Node;
 
 				[ast1, ast2].forEach(ast => {

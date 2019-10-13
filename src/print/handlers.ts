@@ -373,11 +373,15 @@ const handlers: Record<string, Handler> = {
 	},
 
 	BreakStatement(node: BreakStatement, state) {
-		throw new Error(`TODO BreakStatement`);
+		return node.label
+			? [c('break '), ...handle(node.label, state), c(';')]
+			: [c('break;')];
 	},
 
 	ContinueStatement(node: ContinueStatement, state) {
-		throw new Error(`TODO ContinueStatement`);
+		return node.label
+			? [c('continue '), ...handle(node.label, state), c(';')]
+			: [c('continue;')];
 	},
 
 	WithStatement(node: WithStatement, state) {
@@ -620,6 +624,10 @@ const handlers: Record<string, Handler> = {
 		);
 
 		return chunks;
+	},
+
+	ImportExpression(node: any, state) {
+		return [c('import('), ...handle(node.source, state), c(')')];
 	},
 
 	ExportDefaultDeclaration(node: ExportDefaultDeclaration, state) {

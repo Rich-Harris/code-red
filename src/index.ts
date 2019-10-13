@@ -162,11 +162,11 @@ export function b(strings: TemplateStringsArray, ...values: any[]): Node[] {
 	const str = join(strings);
 	try {
 		const ast: any = acorn.parse(str, {
-			ecmaVersion: 2019,
+			ecmaVersion: 11,
 			sourceType: 'module',
 			allowAwaitOutsideFunction: true,
 			allowReturnOutsideFunction: true
-		});
+		} as any);
 
 		inject(ast, values);
 
@@ -181,9 +181,11 @@ export function x(strings: TemplateStringsArray, ...values: any[]): Expression {
 
 	try {
 		const expression = acorn.parseExpressionAt(str, 0, {
+			ecmaVersion: 11,
+			sourceType: 'module',
 			allowAwaitOutsideFunction: true,
 			allowImportExportEverywhere: true
-		}) as Expression;
+		} as any) as Expression;
 
 		inject(expression, values);
 
@@ -198,9 +200,11 @@ export function p(strings: TemplateStringsArray, ...values: any[]): Property {
 
 	try {
 		const expression = acorn.parseExpressionAt(str, 0, {
+			ecmaVersion: 11,
+			sourceType: 'module',
 			allowAwaitOutsideFunction: true,
 			allowImportExportEverywhere: true
-		}) as unknown as ObjectExpression;
+		} as any) as unknown as ObjectExpression;
 
 		inject(expression, values);
 
