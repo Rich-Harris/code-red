@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.17
+
+* Fixes and additions
+
 ## 0.0.16
 
 * Improve some aspects of generated code
