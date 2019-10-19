@@ -1,0 +1,1 @@
+module.exports = ({ b }) => b`import a, { b, c as d } from 'x';`;
