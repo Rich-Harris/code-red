@@ -644,7 +644,7 @@ const handlers: Record<string, Handler> = {
 
 			if (i < length) {
 				// we have named specifiers
-				const specifiers = node.specifiers.map((specifier: ImportSpecifier) => {
+				const specifiers = node.specifiers.slice(i).map((specifier: ImportSpecifier) => {
 					const name = handle(specifier.imported, state)[0];
 					const as = handle(specifier.local, state)[0];
 
