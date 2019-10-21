@@ -1,5 +1,10 @@
 # code-red changelog
 
+## 0.0.18
+
+* Handle mixed named/default imports ([#3](https://github.com/Rich-Harris/code-red/issues/3))
+* Update dependencies ([#4](https://github.com/Rich-Harris/code-red/issues/4))
+
 ## 0.0.17
 
 * Fixes and additions
