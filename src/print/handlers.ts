@@ -2,6 +2,7 @@
 // released under MIT license https://github.com/davidbonnet/astring/blob/master/LICENSE
 
 import {
+	Comment,
 	Node,
 	CallExpression,
 	Program,
@@ -84,7 +85,21 @@ export function handle(node: Node, state: State): Chunk[] {
 		throw new Error(`Not implemented ${node.type}`);
 	}
 
-	return handler(node, state);
+	const result = handler(node, state);
+
+	if (node.leadingComments) {
+		result.unshift(c(node.leadingComments.map(comment => comment.type === 'Block'
+			? `/*${comment.value}*/\n${state.indent}`
+			: `//${comment.value}\n${state.indent}`).join(``)));
+	}
+
+	if (node.trailingComments) {
+		result.push(c(node.trailingComments.map(comment => comment.type === 'Block'
+			? ` /*${comment.value}*/`
+			: ` //${comment.value}`).join(``)));
+	}
+
+	return result;
 }
 
 function c(content: string, node?: Node): Chunk {

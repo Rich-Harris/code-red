@@ -1,6 +1,11 @@
 import * as acorn from 'acorn';
 import { walk } from 'estree-walker';
-import { Property, Node, ObjectExpression, Expression } from 'estree';
+import { Comment, Property, Node, ObjectExpression, Expression } from 'estree';
+
+interface CommentWithLocation extends Comment {
+	start: number;
+	end: number;
+}
 
 // generate an ID that is, to all intents and purposes, unique
 const id = (Math.round(Math.random() * 1e20)).toString(36);
@@ -83,8 +88,24 @@ const flatten = (nodes: any[], target: any[]) => {
 
 const EMPTY = { type: 'Empty' };
 
-const inject = (node: Node, values: any[]) => {
+const acorn_opts = (comments: CommentWithLocation[]) => ({
+	ecmaVersion: 11,
+	sourceType: 'module',
+	allowAwaitOutsideFunction: true,
+	allowImportExportEverywhere: true,
+	onComment: (block: boolean, value: string, start: number, end: number) => {
+		comments.push({ type: block ? 'Block' : 'Line', value, start, end });
+	}
+} as any);
+
+const inject = (raw: string, node: Node, values: any[], comments: CommentWithLocation[]) => {
 	walk(node, {
+		enter(node) {
+			while (comments[0] && comments[0].start < (node as any).start) {
+				(node.leadingComments || (node.leadingComments = [])).push(comments.shift());
+			}
+		},
+
 		leave(node, parent, key, index) {
 			if (node.type === 'Identifier') {
 				re.lastIndex = 0;
@@ -154,21 +175,26 @@ const inject = (node: Node, values: any[]) => {
 				node.test = node.test === EMPTY ? null : node.test;
 				node.update = node.update === EMPTY ? null : node.update;
 			}
+
+			if (comments[0]) {
+				const slice = raw.slice((node as any).end, comments[0].start);
+
+				if (/^[ \t]*$/.test(slice)) {
+					node.trailingComments = [comments.shift()];
+				}
+			}
 		}
 	});
 }
 
 export function b(strings: TemplateStringsArray, ...values: any[]): Node[] {
 	const str = join(strings);
-	try {
-		const ast: any = acorn.parse(str, {
-			ecmaVersion: 11,
-			sourceType: 'module',
-			allowAwaitOutsideFunction: true,
-			allowReturnOutsideFunction: true
-		} as any);
+	const comments: CommentWithLocation[] = [];
 
-		inject(ast, values);
+	try {
+		const ast: any = acorn.parse(str,  acorn_opts(comments));
+
+		inject(str, ast, values, comments);
 
 		return ast.body;
 	} catch (err) {
@@ -178,16 +204,12 @@ export function b(strings: TemplateStringsArray, ...values: any[]): Node[] {
 
 export function x(strings: TemplateStringsArray, ...values: any[]): Expression {
 	const str = join(strings);
+	const comments: CommentWithLocation[] = [];
 
 	try {
-		const expression = acorn.parseExpressionAt(str, 0, {
-			ecmaVersion: 11,
-			sourceType: 'module',
-			allowAwaitOutsideFunction: true,
-			allowImportExportEverywhere: true
-		} as any) as Expression;
+		const expression = acorn.parseExpressionAt(str, 0, acorn_opts(comments)) as Expression;
 
-		inject(expression, values);
+		inject(str, expression, values, comments);
 
 		return expression;
 	} catch (err) {
@@ -197,16 +219,12 @@ export function x(strings: TemplateStringsArray, ...values: any[]): Expression {
 
 export function p(strings: TemplateStringsArray, ...values: any[]): Property {
 	const str = `{${join(strings)}}`;
+	const comments: CommentWithLocation[] = [];
 
 	try {
-		const expression = acorn.parseExpressionAt(str, 0, {
-			ecmaVersion: 11,
-			sourceType: 'module',
-			allowAwaitOutsideFunction: true,
-			allowImportExportEverywhere: true
-		} as any) as unknown as ObjectExpression;
+		const expression = acorn.parseExpressionAt(str, 0,  acorn_opts(comments)) as unknown as ObjectExpression;
 
-		inject(expression, values);
+		inject(str, expression, values, comments);
 
 		return expression.properties[0];
 	} catch (err) {
