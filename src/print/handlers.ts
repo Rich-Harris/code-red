@@ -76,6 +76,7 @@ type State = {
 	scope_map: WeakMap<Node, any>;
 	getName: (name: string) => string;
 	deconflicted: WeakMap<Node, Map<string, string>>;
+	comments: Comment[];
 };
 
 export function handle(node: Node, state: State): Chunk[] {
@@ -89,14 +90,12 @@ export function handle(node: Node, state: State): Chunk[] {
 
 	if (node.leadingComments) {
 		result.unshift(c(node.leadingComments.map(comment => comment.type === 'Block'
-			? `/*${comment.value}*/\n${state.indent}`
-			: `//${comment.value}\n${state.indent}`).join(``)));
+			? `/*${comment.value}*/${(comment as any).has_trailing_newline ? `\n${state.indent}` : ` `}`
+			: `//${comment.value}${(comment as any).has_trailing_newline ? `\n${state.indent}` : ` `}`).join(``)));
 	}
 
 	if (node.trailingComments) {
-		result.push(c(node.trailingComments.map(comment => comment.type === 'Block'
-			? ` /*${comment.value}*/`
-			: ` //${comment.value}`).join(``)));
+		state.comments.push(node.trailingComments[0]); // there is only ever one
 	}
 
 	return result;
@@ -272,10 +271,21 @@ const deconflict = (name: string, names: Set<string>) => {
 const handle_body = (nodes: Node[], state: State) => {
 	const chunks = [];
 
-	const body = nodes.map(statement => handle(statement, {
-		...state,
-		indent: state.indent
-	}));
+	const body = nodes.map(statement => {
+		const chunks = handle(statement, {
+			...state,
+			indent: state.indent
+		});
+
+		while (state.comments.length) {
+			const comment = state.comments.shift();
+			chunks.push(c(comment.type === 'Block'
+			? ` /*${comment.value}*/`
+			: ` //${comment.value}`));
+		}
+
+		return chunks;
+	});
 
 	let needed_padding = false;
 
@@ -414,8 +424,6 @@ const handlers: Record<string, Handler> = {
 			...handle(node.discriminant, state),
 			c(') {')
 		];
-
-		const child_state = { ...state, indent: `${state.indent}\t\t` };
 
 		node.cases.forEach(block => {
 			if (block.test) {
@@ -950,21 +958,53 @@ const handlers: Record<string, Handler> = {
 			return [c('{}')];
 		}
 
-		const properties = node.properties.map(p => handle(p, {
-			...state,
-			indent: state.indent + '\t'
-		}));
+		let has_inline_comment = false;
+
+		const chunks: Chunk[] = [];
+		const separator = c(', ');
+
+		node.properties.forEach((p, i) => {
+			chunks.push(...handle(p, {
+				...state,
+				indent: state.indent + '\t'
+			}));
+
+			if (state.comments.length) {
+				// TODO generalise this, so it works with ArrayExpressions and other things.
+				// At present, stuff will just get appended to the closest statement/declaration
+				chunks.push(c(', '));
+
+				while (state.comments.length) {
+					const comment = state.comments.shift();
+
+					chunks.push(c(comment.type === 'Block'
+						? `/*${comment.value}*/\n${state.indent}\t`
+						: `//${comment.value}\n${state.indent}\t`));
+
+					if (comment.type === 'Line') {
+						has_inline_comment = true;
+					}
+				}
+			} else {
+				if (i < node.properties.length - 1) {
+					chunks.push(separator);
+				}
+			}
+		});
 
 		const multiple_lines = (
-			properties.some(has_newline) ||
-			(properties.map(get_length).reduce(sum, 0) + (state.indent.length + properties.length - 1) * 2) > 40
+			has_inline_comment ||
+			has_newline(chunks) ||
+			get_length(chunks) > 40
 		);
 
-		const separator = c(multiple_lines ? `,\n${state.indent}\t` : ', ');
+		if (multiple_lines) {
+			separator.content = `,\n${state.indent}\t`;
+		}
 
 		return [
 			c(multiple_lines ? `{\n${state.indent}\t` : `{ `),
-			...join(properties, separator) as Chunk[],
+			...chunks,
 			c(multiple_lines ? `\n${state.indent}}` : ` }`)
 		];
 	},

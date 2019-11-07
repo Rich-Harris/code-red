@@ -8,3 +8,7 @@ const obj = {
 	foo: 1, // comment in middle of object
 	bar: 2
 };
+
+function bar() {
+	return /*result*/ foo;
+}

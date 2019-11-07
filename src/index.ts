@@ -88,21 +88,44 @@ const flatten = (nodes: any[], target: any[]) => {
 
 const EMPTY = { type: 'Empty' };
 
-const acorn_opts = (comments: CommentWithLocation[]) => ({
-	ecmaVersion: 11,
-	sourceType: 'module',
-	allowAwaitOutsideFunction: true,
-	allowImportExportEverywhere: true,
-	onComment: (block: boolean, value: string, start: number, end: number) => {
-		comments.push({ type: block ? 'Block' : 'Line', value, start, end });
-	}
-} as any);
+const acorn_opts = (comments: CommentWithLocation[], raw: string) => {
+	return {
+		ecmaVersion: 11,
+		sourceType: 'module',
+		allowAwaitOutsideFunction: true,
+		allowImportExportEverywhere: true,
+		onComment: (block: boolean, value: string, start: number, end: number) => {
+			if (block && /\n/.test(value)) {
+				let a = start;
+				while (a > 0 && raw[a - 1] !== '\n') a -= 1;
+
+				let b = a;
+				while (/[ \t]/.test(raw[b])) b += 1;
+
+				const indentation = raw.slice(a, b);
+				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
+			}
+
+			comments.push({ type: block ? 'Block' : 'Line', value, start, end });
+		}
+	} as any;
+};
 
 const inject = (raw: string, node: Node, values: any[], comments: CommentWithLocation[]) => {
 	walk(node, {
 		enter(node) {
+			let comment;
+
 			while (comments[0] && comments[0].start < (node as any).start) {
-				(node.leadingComments || (node.leadingComments = [])).push(comments.shift());
+				comment = comments.shift();
+
+				const next = comments[0] || node;
+				(comment as any).has_trailing_newline = (
+					comment.type === 'Line' ||
+					/\n/.test(raw.slice(comment.end, (next as any).start))
+				);
+
+				(node.leadingComments || (node.leadingComments = [])).push(comment);
 			}
 		},
 
@@ -179,7 +202,7 @@ const inject = (raw: string, node: Node, values: any[], comments: CommentWithLoc
 			if (comments[0]) {
 				const slice = raw.slice((node as any).end, comments[0].start);
 
-				if (/^[ \t]*$/.test(slice)) {
+				if (/^[,) \t]*$/.test(slice)) {
 					node.trailingComments = [comments.shift()];
 				}
 			}
@@ -192,7 +215,7 @@ export function b(strings: TemplateStringsArray, ...values: any[]): Node[] {
 	const comments: CommentWithLocation[] = [];
 
 	try {
-		const ast: any = acorn.parse(str,  acorn_opts(comments));
+		const ast: any = acorn.parse(str,  acorn_opts(comments, str));
 
 		inject(str, ast, values, comments);
 
@@ -207,7 +230,7 @@ export function x(strings: TemplateStringsArray, ...values: any[]): Expression {
 	const comments: CommentWithLocation[] = [];
 
 	try {
-		const expression = acorn.parseExpressionAt(str, 0, acorn_opts(comments)) as Expression;
+		const expression = acorn.parseExpressionAt(str, 0, acorn_opts(comments, str)) as Expression;
 
 		inject(str, expression, values, comments);
 
@@ -222,7 +245,7 @@ export function p(strings: TemplateStringsArray, ...values: any[]): Property {
 	const comments: CommentWithLocation[] = [];
 
 	try {
-		const expression = acorn.parseExpressionAt(str, 0,  acorn_opts(comments)) as unknown as ObjectExpression;
+		const expression = acorn.parseExpressionAt(str, 0,  acorn_opts(comments, str)) as unknown as ObjectExpression;
 
 		inject(str, expression, values, comments);
 

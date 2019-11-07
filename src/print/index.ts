@@ -30,7 +30,8 @@ export function print(node: Node, opts: PrintOptions = {}): { code: string, map:
 		getName,
 		scope,
 		scope_map,
-		deconflicted
+		deconflicted,
+		comments: []
 	});
 
 	type Segment = [number, number, number, number];
