@@ -1,23 +1,16 @@
-module.exports = ({ b }) => {
-	const insert = b`"use strict";`;
+module.exports = ({ b }) => b`
+	// comment before a node
+	// second line
+	console.log(1);
 
-	return b`
-		// comment before an inserted node
-		${insert}
+	console.log(2); // comment on same line as node
 
-		// comment before a node
-		// second line
-		console.log(1);
+	const obj = {
+		foo: 1, // comment in middle of object
+		bar: 2
+	};
 
-		console.log(2); // comment on same line as node
-
-		const obj = {
-			foo: 1, // comment in middle of object
-			bar: 2
-		};
-
-		function bar () {
-			return /*result*/ foo;
-		}
-	`;
-};
+	function bar () {
+		return /*result*/ foo;
+	}
+`;

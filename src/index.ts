@@ -1,6 +1,6 @@
 import * as acorn from 'acorn';
 import { walk } from 'estree-walker';
-import { Comment, Property, Node, ObjectExpression, Expression } from 'estree';
+import { Comment, Property, Node, ObjectExpression, Expression, ExpressionStatement } from 'estree';
 
 interface CommentWithLocation extends Comment {
 	start: number;
@@ -27,6 +27,7 @@ const join = (strings: TemplateStringsArray) => {
 const flatten_body = (array: any[], target: any[]) => {
 	for (let i = 0; i < array.length; i += 1) {
 		const statement = array[i];
+
 		if (Array.isArray(statement)) {
 			flatten_body(statement, target);
 			continue;
@@ -36,7 +37,18 @@ const flatten_body = (array: any[], target: any[]) => {
 			if (statement.expression === EMPTY) continue;
 
 			if (Array.isArray(statement.expression)) {
-				flatten_body(statement.expression, target);
+				(statement.expression as Expression[]).forEach((expression, i) => {
+					const replacement: ExpressionStatement = {
+						type: 'ExpressionStatement',
+						expression
+					};
+
+					if (i === 0) replacement.leadingComments = statement.leadingComments;
+					if (i === statement.expression.length - 1) replacement.trailingComments = statement.trailingComments;
+
+					target.push(replacement);
+				});
+
 				continue;
 			}
 
@@ -146,11 +158,7 @@ const inject = (raw: string, node: Node, values: any[], comments: CommentWithLoc
 								value = { type: 'Literal', value };
 							}
 
-							if (index === null) {
-								(parent as any)[key] = value || EMPTY;
-							} else {
-								(parent as any)[key][index] = value || EMPTY;
-							}
+							this.replace(value || EMPTY);
 						}
 					} else {
 						node.name = `${match[2] ? `@` : `#`}${match[4]}`;

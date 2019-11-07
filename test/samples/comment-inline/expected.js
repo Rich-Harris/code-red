@@ -1,6 +1,3 @@
-// comment before an inserted node
-"use strict";
-
 // comment before a node
 // second line
 console.log(1);
