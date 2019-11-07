@@ -94,6 +94,7 @@ const acorn_opts = (comments: CommentWithLocation[], raw: string) => {
 		sourceType: 'module',
 		allowAwaitOutsideFunction: true,
 		allowImportExportEverywhere: true,
+		allowReturnOutsideFunction: true,
 		onComment: (block: boolean, value: string, start: number, end: number) => {
 			if (block && /\n/.test(value)) {
 				let a = start;
