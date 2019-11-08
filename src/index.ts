@@ -27,7 +27,6 @@ const join = (strings: TemplateStringsArray) => {
 const flatten_body = (array: any[], target: any[]) => {
 	for (let i = 0; i < array.length; i += 1) {
 		const statement = array[i];
-
 		if (Array.isArray(statement)) {
 			flatten_body(statement, target);
 			continue;
@@ -37,25 +36,25 @@ const flatten_body = (array: any[], target: any[]) => {
 			if (statement.expression === EMPTY) continue;
 
 			if (Array.isArray(statement.expression)) {
-				(statement.expression as Expression[]).forEach((expression, i) => {
-					const replacement: ExpressionStatement = {
-						type: 'ExpressionStatement',
-						expression
-					};
+				// TODO this is hacktacular
+				let node = statement.expression[0];
+				while (Array.isArray(node)) node = node[0];
+				if (node) node.leadingComments = statement.leadingComments;
 
-					if (i === 0) replacement.leadingComments = statement.leadingComments;
-					if (i === statement.expression.length - 1) replacement.trailingComments = statement.trailingComments;
-
-					target.push(replacement);
-				});
-
+				flatten_body(statement.expression, target);
 				continue;
 			}
 
-			if (!/Expression$/.test(statement.expression.type)) {
-				target.push(statement.expression);
+			if (/(Expression|Literal)$/.test(statement.expression.type)) {
+				target.push(statement);
 				continue;
 			}
+
+			if (statement.leadingComments) statement.expression.leadingComments = statement.leadingComments;
+			if (statement.trailingComments) statement.expression.trailingComments = statement.trailingComments;
+
+			target.push(statement.expression);
+			continue;
 		}
 
 		target.push(statement);
@@ -153,9 +152,9 @@ const inject = (raw: string, node: Node, values: any[], comments: CommentWithLoc
 							let value = values[+match[1]];
 
 							if (typeof value === 'string') {
-								value = { type: 'Identifier', name: value };
+								value = { type: 'Identifier', name: value, leadingComments: node.leadingComments, trailingComments: node.trailingComments };
 							} else if (typeof value === 'number') {
-								value = { type: 'Literal', value };
+								value = { type: 'Literal', value, leadingComments: node.leadingComments, trailingComments: node.trailingComments };
 							}
 
 							this.replace(value || EMPTY);
@@ -164,6 +163,20 @@ const inject = (raw: string, node: Node, values: any[], comments: CommentWithLoc
 						node.name = `${match[2] ? `@` : `#`}${match[4]}`;
 					}
 				}
+			}
+
+			if (node.leadingComments) {
+				node.leadingComments = node.leadingComments.map(c => ({
+					...c,
+					value: c.value.replace(re, (m, i) => +i in values ? values[+i] : m)
+				}));
+			}
+
+			if (node.trailingComments) {
+				node.trailingComments = node.trailingComments.map(c => ({
+					...c,
+					value: c.value.replace(re, (m, i) => +i in values ? values[+i] : m)
+				}));
 			}
 
 			if (node.type === 'Literal') {
