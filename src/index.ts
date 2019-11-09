@@ -1,6 +1,11 @@
 import * as acorn from 'acorn';
 import { walk } from 'estree-walker';
-import { Property, Node, ObjectExpression, Expression } from 'estree';
+import { Comment, Property, Node, ObjectExpression, Expression, ExpressionStatement } from 'estree';
+
+interface CommentWithLocation extends Comment {
+	start: number;
+	end: number;
+}
 
 // generate an ID that is, to all intents and purposes, unique
 const id = (Math.round(Math.random() * 1e20)).toString(36);
@@ -31,14 +36,25 @@ const flatten_body = (array: any[], target: any[]) => {
 			if (statement.expression === EMPTY) continue;
 
 			if (Array.isArray(statement.expression)) {
+				// TODO this is hacktacular
+				let node = statement.expression[0];
+				while (Array.isArray(node)) node = node[0];
+				if (node) node.leadingComments = statement.leadingComments;
+
 				flatten_body(statement.expression, target);
 				continue;
 			}
 
-			if (!/Expression$/.test(statement.expression.type)) {
-				target.push(statement.expression);
+			if (/(Expression|Literal)$/.test(statement.expression.type)) {
+				target.push(statement);
 				continue;
 			}
+
+			if (statement.leadingComments) statement.expression.leadingComments = statement.leadingComments;
+			if (statement.trailingComments) statement.expression.trailingComments = statement.trailingComments;
+
+			target.push(statement.expression);
+			continue;
 		}
 
 		target.push(statement);
@@ -83,8 +99,48 @@ const flatten = (nodes: any[], target: any[]) => {
 
 const EMPTY = { type: 'Empty' };
 
-const inject = (node: Node, values: any[]) => {
+const acorn_opts = (comments: CommentWithLocation[], raw: string) => {
+	return {
+		ecmaVersion: 11,
+		sourceType: 'module',
+		allowAwaitOutsideFunction: true,
+		allowImportExportEverywhere: true,
+		allowReturnOutsideFunction: true,
+		onComment: (block: boolean, value: string, start: number, end: number) => {
+			if (block && /\n/.test(value)) {
+				let a = start;
+				while (a > 0 && raw[a - 1] !== '\n') a -= 1;
+
+				let b = a;
+				while (/[ \t]/.test(raw[b])) b += 1;
+
+				const indentation = raw.slice(a, b);
+				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
+			}
+
+			comments.push({ type: block ? 'Block' : 'Line', value, start, end });
+		}
+	} as any;
+};
+
+const inject = (raw: string, node: Node, values: any[], comments: CommentWithLocation[]) => {
 	walk(node, {
+		enter(node) {
+			let comment;
+
+			while (comments[0] && comments[0].start < (node as any).start) {
+				comment = comments.shift();
+
+				const next = comments[0] || node;
+				(comment as any).has_trailing_newline = (
+					comment.type === 'Line' ||
+					/\n/.test(raw.slice(comment.end, (next as any).start))
+				);
+
+				(node.leadingComments || (node.leadingComments = [])).push(comment);
+			}
+		},
+
 		leave(node, parent, key, index) {
 			if (node.type === 'Identifier') {
 				re.lastIndex = 0;
@@ -96,21 +152,31 @@ const inject = (node: Node, values: any[]) => {
 							let value = values[+match[1]];
 
 							if (typeof value === 'string') {
-								value = { type: 'Identifier', name: value };
+								value = { type: 'Identifier', name: value, leadingComments: node.leadingComments, trailingComments: node.trailingComments };
 							} else if (typeof value === 'number') {
-								value = { type: 'Literal', value };
+								value = { type: 'Literal', value, leadingComments: node.leadingComments, trailingComments: node.trailingComments };
 							}
 
-							if (index === null) {
-								(parent as any)[key] = value || EMPTY;
-							} else {
-								(parent as any)[key][index] = value || EMPTY;
-							}
+							this.replace(value || EMPTY);
 						}
 					} else {
 						node.name = `${match[2] ? `@` : `#`}${match[4]}`;
 					}
 				}
+			}
+
+			if (node.leadingComments) {
+				node.leadingComments = node.leadingComments.map(c => ({
+					...c,
+					value: c.value.replace(re, (m, i) => +i in values ? values[+i] : m)
+				}));
+			}
+
+			if (node.trailingComments) {
+				node.trailingComments = node.trailingComments.map(c => ({
+					...c,
+					value: c.value.replace(re, (m, i) => +i in values ? values[+i] : m)
+				}));
 			}
 
 			if (node.type === 'Literal') {
@@ -154,21 +220,26 @@ const inject = (node: Node, values: any[]) => {
 				node.test = node.test === EMPTY ? null : node.test;
 				node.update = node.update === EMPTY ? null : node.update;
 			}
+
+			if (comments[0]) {
+				const slice = raw.slice((node as any).end, comments[0].start);
+
+				if (/^[,) \t]*$/.test(slice)) {
+					node.trailingComments = [comments.shift()];
+				}
+			}
 		}
 	});
 }
 
 export function b(strings: TemplateStringsArray, ...values: any[]): Node[] {
 	const str = join(strings);
-	try {
-		const ast: any = acorn.parse(str, {
-			ecmaVersion: 11,
-			sourceType: 'module',
-			allowAwaitOutsideFunction: true,
-			allowReturnOutsideFunction: true
-		} as any);
+	const comments: CommentWithLocation[] = [];
 
-		inject(ast, values);
+	try {
+		const ast: any = acorn.parse(str,  acorn_opts(comments, str));
+
+		inject(str, ast, values, comments);
 
 		return ast.body;
 	} catch (err) {
@@ -178,16 +249,12 @@ export function b(strings: TemplateStringsArray, ...values: any[]): Node[] {
 
 export function x(strings: TemplateStringsArray, ...values: any[]): Expression {
 	const str = join(strings);
+	const comments: CommentWithLocation[] = [];
 
 	try {
-		const expression = acorn.parseExpressionAt(str, 0, {
-			ecmaVersion: 11,
-			sourceType: 'module',
-			allowAwaitOutsideFunction: true,
-			allowImportExportEverywhere: true
-		} as any) as Expression;
+		const expression = acorn.parseExpressionAt(str, 0, acorn_opts(comments, str)) as Expression;
 
-		inject(expression, values);
+		inject(str, expression, values, comments);
 
 		return expression;
 	} catch (err) {
@@ -197,16 +264,12 @@ export function x(strings: TemplateStringsArray, ...values: any[]): Expression {
 
 export function p(strings: TemplateStringsArray, ...values: any[]): Property {
 	const str = `{${join(strings)}}`;
+	const comments: CommentWithLocation[] = [];
 
 	try {
-		const expression = acorn.parseExpressionAt(str, 0, {
-			ecmaVersion: 11,
-			sourceType: 'module',
-			allowAwaitOutsideFunction: true,
-			allowImportExportEverywhere: true
-		} as any) as unknown as ObjectExpression;
+		const expression = acorn.parseExpressionAt(str, 0,  acorn_opts(comments, str)) as unknown as ObjectExpression;
 
-		inject(expression, values);
+		inject(str, expression, values, comments);
 
 		return expression.properties[0];
 	} catch (err) {
