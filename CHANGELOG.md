@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.19
+
+* Attach comments
+
 ## 0.0.18
 
 * Handle mixed named/default imports ([#3](https://github.com/Rich-Harris/code-red/issues/3))
