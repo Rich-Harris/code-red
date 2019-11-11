@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.20
+
+* Update deps
+
 ## 0.0.19
 
 * Attach comments
