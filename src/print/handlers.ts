@@ -1028,7 +1028,7 @@ const handlers: Record<string, Handler> = {
 
 		const key = handle(node.key, state);
 
-		if (key.length === 1 && value.length === 1 && key[0].content === value[0].content) {
+		if (key.length === 1 && value.length === 1 && node.key.type === 'Identifier' && key[0].content === value[0].content) {
 			return value;
 		}
 
@@ -1060,10 +1060,6 @@ const handlers: Record<string, Handler> = {
 				c(']: '),
 				...value
 			];
-		}
-
-		if (key.length === 1 && value.length === 1 && key[0].content === value[0].content) {
-			return value;
 		}
 
 		return [

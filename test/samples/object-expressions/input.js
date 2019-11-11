@@ -8,6 +8,8 @@ module.exports = ({ b, p }) => {
 			baz: qux
 		};
 
+		obj = { "1": "1" };
+
 		obj = { ${x} }
 
 		obj = {
