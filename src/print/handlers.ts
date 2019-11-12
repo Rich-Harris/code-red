@@ -569,7 +569,7 @@ const handlers: Record<string, Handler> = {
 
 		if (node.async) chunks.push(c('async '));
 		chunks.push(c(node.generator ? 'function* ' : 'function '));
-		if (node.id) chunks.push(c(node.id.name, node.id));
+		if (node.id) chunks.push(...handle(node.id, state));
 		chunks.push(c('('));
 
 		const params = node.params.map(p => handle(p, {
