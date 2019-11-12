@@ -1,4 +1,5 @@
 obj = { foo, bar, baz: qux };
+obj = { "1": "1" };
 obj = { a: b };
 
 obj = {
