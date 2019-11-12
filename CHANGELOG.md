@@ -1,5 +1,10 @@
 # code-red changelog
 
+## 0.0.21
+
+* Deconflict #-identifiers in function names ([#10](https://github.com/Rich-Harris/code-red/issues/10))
+* Fix object expression with string literal key matching value ([#9](https://github.com/Rich-Harris/code-red/pull/9))
+
 ## 0.0.20
 
 * Update deps
