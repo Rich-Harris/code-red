@@ -1,15 +1,12 @@
 import * as acorn from 'acorn';
 import { walk } from 'estree-walker';
 import { Comment, Property, Node, ObjectExpression, Expression, ExpressionStatement } from 'estree';
+import { id, re } from './utils/id';
 
 interface CommentWithLocation extends Comment {
 	start: number;
 	end: number;
 }
-
-// generate an ID that is, to all intents and purposes, unique
-const id = (Math.round(Math.random() * 1e20)).toString(36);
-const re = new RegExp(`_${id}_(?:(\\d+)|(AT)|(HASH))_(\\w+)?`, 'g');
 
 const sigils: Record<string, string> = {
 	'@': 'AT',

@@ -58,6 +58,7 @@ import {
 	ForOfStatement,
 	FunctionExpression
 } from 'estree';
+import { re } from '../utils/id';
 
 type Chunk = {
 	content: string;
@@ -1356,7 +1357,11 @@ const handlers: Record<string, Handler> = {
 			return [
 				// TODO do we need to handle weird unicode characters somehow?
 				// str.replace(/\\u(\d{4})/g, (m, n) => String.fromCharCode(+n))
-				c(JSON.stringify(node.value), node)
+				c(JSON.stringify(node.value).replace(re, (_m, _i, at, hash, name) => {
+					if (at)	return '@' + name;
+					if (hash) return '#' + name;
+					throw new Error(`this shouldn't happen`);
+				}), node)
 			];
 		}
 
