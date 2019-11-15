@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.23
+
+* Unescape sigils in literals ([#16](https://github.com/Rich-Harris/code-red/pull/16))
+
 ## 0.0.22
 
 * Prevent erroneous object shorthand when key is an identifier ([#14](https://github.com/Rich-Harris/code-red/issues/14))
