@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.22
+
+* Prevent erroneous object shorthand when key is an identifier ([#14](https://github.com/Rich-Harris/code-red/issues/14))
+
 ## 0.0.21
 
 * Deconflict #-identifiers in function names ([#10](https://github.com/Rich-Harris/code-red/issues/10))
