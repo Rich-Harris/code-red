@@ -1026,11 +1026,14 @@ const handlers: Record<string, Handler> = {
 			return value;
 		}
 
-		const key = handle(node.key, state);
-
-		if (key.length === 1 && value.length === 1 && node.key.type === 'Identifier' && key[0].content === value[0].content) {
+		if (node.value.type === 'Identifier' && (
+			(node.key.type === 'Identifier' && node.key.name === node.value.name) ||
+			(node.key.type === 'Literal' && node.key.value === node.value.name)
+		)) {
 			return value;
 		}
+
+		const key = handle(node.key, state);
 
 		if (node.method || (node.value.type === 'FunctionExpression' && !node.value.id)) {
 			state = {
