@@ -10,6 +10,10 @@ module.exports = ({ b, p }) => {
 
 		obj = { "1": "1" };
 
+		obj = { true: true };
+
+		obj = { "foo": foo };
+
 		obj = { ${x} }
 
 		obj = {
