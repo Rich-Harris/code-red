@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.24
+
+* Determine shorthand eligibility after stringification ([#17](https://github.com/Rich-Harris/code-red/pull/17))
+
 ## 0.0.23
 
 * Unescape sigils in literals ([#16](https://github.com/Rich-Harris/code-red/pull/16))
