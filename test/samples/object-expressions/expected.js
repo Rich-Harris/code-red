@@ -2,6 +2,9 @@ obj = { foo, bar, baz: qux };
 obj = { "1": "1" };
 obj = { true: true };
 obj = { foo };
+let blah;
+obj = { blah };
+obj = { blah };
 obj = { a: b };
 
 obj = {
