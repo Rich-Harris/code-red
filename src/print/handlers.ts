@@ -1028,8 +1028,8 @@ const handlers: Record<string, Handler> = {
 		}
 
 		if (node.value.type === 'Identifier' && (
-			(node.key.type === 'Identifier' && node.key.name === node.value.name) ||
-			(node.key.type === 'Literal' && node.key.value === node.value.name)
+			(node.key.type === 'Identifier' && node.key.name === value[0].content) ||
+			(node.key.type === 'Literal' && node.key.value === value[0].content)
 		)) {
 			return value;
 		}

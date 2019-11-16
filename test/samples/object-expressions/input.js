@@ -14,6 +14,10 @@ module.exports = ({ b, p }) => {
 
 		obj = { "foo": foo };
 
+		let #blah;
+		obj = { blah: #blah };
+		obj = { 'blah': #blah };
+
 		obj = { ${x} }
 
 		obj = {
