@@ -1036,7 +1036,7 @@ const handlers: Record<string, Handler> = {
 
 		const key = handle(node.key, state);
 
-		if (node.method || (node.value.type === 'FunctionExpression' && !node.value.id)) {
+		if (node.value.type === 'FunctionExpression' && !node.value.id) {
 			state = {
 				...state,
 				scope: state.scope_map.get(node.value)
@@ -1045,6 +1045,13 @@ const handlers: Record<string, Handler> = {
 			const chunks = node.kind !== 'init'
 				? [c(`${node.kind} `)]
 				: [];
+
+			if (node.value.async) {
+				chunks.push(c('async '));
+			}
+			if (node.value.generator) {
+				chunks.push(c('*'));
+			}
 
 			chunks.push(
 				...(node.computed ? [c('['), ...key, c(']')] : key),
