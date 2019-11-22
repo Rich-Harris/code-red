@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.26
+
+* Always replace comment values ([#20](https://github.com/Rich-Harris/code-red/pull/20))
+
 ## 0.0.25
 
 * Fix async/generator functions in object methods ([#18](https://github.com/Rich-Harris/code-red/issues/18))
