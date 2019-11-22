@@ -1,0 +1,1 @@
+module.exports = ({ x }) => x`a = /* ${"the answer"} */ ${42}`
