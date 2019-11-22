@@ -121,6 +121,10 @@ const acorn_opts = (comments: CommentWithLocation[], raw: string) => {
 };
 
 const inject = (raw: string, node: Node, values: any[], comments: CommentWithLocation[]) => {
+	comments.forEach(comment => {
+		comment.value = comment.value.replace(re, (m, i) => +i in values ? values[+i] : m);
+	});
+
 	walk(node, {
 		enter(node) {
 			let comment;
@@ -160,20 +164,6 @@ const inject = (raw: string, node: Node, values: any[], comments: CommentWithLoc
 						node.name = `${match[2] ? `@` : `#`}${match[4]}`;
 					}
 				}
-			}
-
-			if (node.leadingComments) {
-				node.leadingComments = node.leadingComments.map(c => ({
-					...c,
-					value: c.value.replace(re, (m, i) => +i in values ? values[+i] : m)
-				}));
-			}
-
-			if (node.trailingComments) {
-				node.trailingComments = node.trailingComments.map(c => ({
-					...c,
-					value: c.value.replace(re, (m, i) => +i in values ? values[+i] : m)
-				}));
 			}
 
 			if (node.type === 'Literal') {
@@ -264,7 +254,7 @@ export function p(strings: TemplateStringsArray, ...values: any[]): Property {
 	const comments: CommentWithLocation[] = [];
 
 	try {
-		const expression = acorn.parseExpressionAt(str, 0,  acorn_opts(comments, str)) as unknown as ObjectExpression;
+		const expression = acorn.parseExpressionAt(str, 0, acorn_opts(comments, str)) as unknown as ObjectExpression;
 
 		inject(str, expression, values, comments);
 
