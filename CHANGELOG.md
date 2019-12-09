@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.27
+
+* Handle parenthesized expressions
+
 ## 0.0.26
 
 * Always replace comment values ([#20](https://github.com/Rich-Harris/code-red/pull/20))
