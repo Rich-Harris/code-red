@@ -352,6 +352,10 @@ const handlers: Record<string, Handler> = {
 		return [];
 	},
 
+	ParenthesizedExpression(node: any, state) {
+		return handle(node.expression, state);
+	},
+
 	ExpressionStatement(node: ExpressionStatement, state) {
 		const precedence = EXPRESSIONS_PRECEDENCE[node.expression.type]
 		if (
