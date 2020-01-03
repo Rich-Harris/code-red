@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.28
+
+* Add `toString` and `toUrl` methods on sourcemap objects ([#22](https://github.com/Rich-Harris/code-red/pull/22))
+
 ## 0.0.27
 
 * Handle parenthesized expressions
