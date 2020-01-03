@@ -86,20 +86,31 @@ export function print(node: Node, opts: PrintOptions = {}): { code: string, map:
 
 	mappings.push(current_line);
 
-	return {
-		code,
-		map: {
-			version: 3,
-			names: [],
-			sources: [opts.sourceMapSource || null],
-			sourcesContent: [opts.sourceMapContent || null],
-			mappings: encode(mappings),
-			toString() {
+	const map = {
+		version: 3,
+		names: [] as string[],
+		sources: [opts.sourceMapSource || null],
+		sourcesContent: [opts.sourceMapContent || null],
+		mappings: encode(mappings)
+	};
+
+	Object.defineProperties(map, {
+		toString: {
+			enumerable: false,
+			value: function toString() {
 				return JSON.stringify(this);
-			},
-			toUrl() {
+			}
+		},
+		toUrl: {
+			enumerable: false,
+			value: function toUrl() {
 				return 'data:application/json;charset=utf-8;base64,' + btoa(this.toString());
 			}
 		}
+	});
+
+	return {
+		code,
+		map
 	};
 }

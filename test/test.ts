@@ -418,7 +418,7 @@ describe('codered', () => {
 				});
 
 				fs.writeFileSync(`test/samples/${dir}/_actual.js`, actual.code);
-				fs.writeFileSync(`test/samples/${dir}/_actual.js.map`, JSON.stringify(actual.map, null, '  '));
+				fs.writeFileSync(`test/samples/${dir}/_actual.js.map`, actual.map.toString());
 
 				assert.equal(actual.code, expected.code);
 				assert.deepEqual(actual.map, expected.map);
