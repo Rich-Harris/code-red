@@ -3,6 +3,15 @@ import { handle } from './handlers';
 import { Node, Program } from 'estree';
 import { encode } from 'sourcemap-codec';
 
+let btoa: (str?: string) => void = () => {
+	throw new Error('Unsupported environment: `window.btoa` or `Buffer` should be supported.');
+};
+if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
+	btoa = (str: string) => window.btoa(unescape(encodeURIComponent(str)));
+} else if (typeof Buffer === 'function') {
+	btoa = (str: string) => Buffer.from(str, 'utf-8').toString('base64');
+}
+
 type PrintOptions = {
 	file?: string;
 	sourceMapSource?: string;
@@ -84,7 +93,13 @@ export function print(node: Node, opts: PrintOptions = {}): { code: string, map:
 			names: [],
 			sources: [opts.sourceMapSource || null],
 			sourcesContent: [opts.sourceMapContent || null],
-			mappings: encode(mappings)
+			mappings: encode(mappings),
+			toString() {
+				return JSON.stringify(this);
+			},
+			toUrl() {
+				return 'data:application/json;charset=utf-8;base64,' + btoa(this.toString());
+			}
 		}
 	};
 }
