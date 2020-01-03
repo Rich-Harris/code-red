@@ -2,11 +2,27 @@ import * as fs from 'fs';
 import * as assert from 'assert';
 import * as acorn from 'acorn';
 import { generateRandomJS } from 'eslump';
-import { x, b, p, print } from '../src/index';
+import * as codered from '../src/index';
 import { ObjectExpression, Identifier, Node } from 'estree';
 import { walk } from 'estree-walker';
 
 const d = (str: string) => str.replace(/^\t{5}/gm, '').trim();
+
+// just to make the tests less messy
+const remove_ranges = ast => {
+	walk(ast, {
+		enter(node) {
+			delete node.start;
+			delete node.end;
+		}
+	});
+	return ast;
+};
+
+const b = (s, ...v) => remove_ranges(codered.b(s, ...v));
+const x = (s, ...v) => remove_ranges(codered.x(s, ...v));
+const p = (s, ...v) => remove_ranges(codered.p(s, ...v));
+const print = codered.print;
 
 describe('codered', () => {
 	describe('b', () => {
@@ -98,7 +114,7 @@ describe('codered', () => {
 			});
 
 			assert.deepEqual(fn.body.body, [
-				call('a'),
+				{ leadingComments: undefined, ...call('a') },
 				call('b'),
 				call('c')
 			]);
@@ -254,7 +270,9 @@ describe('codered', () => {
 
 			assert.deepEqual((expression as any).arguments[1], {
 				type: 'Literal',
-				value: 42
+				value: 42,
+				leadingComments: undefined,
+				trailingComments: undefined
 			});
 		});
 
@@ -271,7 +289,9 @@ describe('codered', () => {
 
 			assert.deepEqual((expression as any).arguments[0], {
 				type: 'Identifier',
-				name: 'world'
+				name: 'world',
+				leadingComments: undefined,
+				trailingComments: undefined
 			});
 		});
 
@@ -373,8 +393,9 @@ describe('codered', () => {
 			assert.deepEqual(map, {
 				version: 3,
 				sources: ['input.js'],
+				sourcesContent: [null],
 				names: [],
-				mappings: 'YASK'
+				mappings: 'YASK,EAAE'
 			});
 		});
 	});
@@ -399,11 +420,11 @@ describe('codered', () => {
 		});
 	});
 
-	describe.only('print', () => {
+	describe('print', () => {
 		const read = file => fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : null;
 
 		fs.readdirSync('test/samples').forEach(dir => {
-			it.only(dir, () => {
+			it(dir, () => {
 				if (dir[0] === '.') return;
 				const input = require(`./samples/${dir}/input.js`)({ b, x, p });
 
