@@ -132,6 +132,13 @@ const inject = (raw: string, node: Node, values: any[], comments: CommentWithLoc
 			while (comments[0] && comments[0].start < (node as any).start) {
 				comment = comments.shift();
 
+				comment.value = comment.value.replace(re, (match, id, at, hash, value) => {
+					if (hash) return `#${value}`;
+					if (at) return `@${value}`;
+
+					return match;
+				});
+
 				const next = comments[0] || node;
 				(comment as any).has_trailing_newline = (
 					comment.type === 'Line' ||
