@@ -885,7 +885,13 @@ const handlers: Record<string, Handler> = {
 
 	AwaitExpression(node: AwaitExpression, state) {
 		if (node.argument) {
-			return [c('await '), ...handle(node.argument, state)];
+			const precedence = EXPRESSIONS_PRECEDENCE[node.argument.type];
+
+			if (precedence > EXPRESSIONS_PRECEDENCE.AwaitExpression) {
+				return [c('await ('), ...handle(node.argument, state), c(')')];
+			} else {
+				return [c('await '), ...handle(node.argument, state)];
+			}
 		}
 
 		return [c('await')];
