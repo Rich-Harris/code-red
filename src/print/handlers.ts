@@ -152,17 +152,17 @@ const EXPRESSIONS_PRECEDENCE: Record<string, number> = {
 	MemberExpression: 19,
 	CallExpression: 19,
 	NewExpression: 19,
-	ArrowFunctionExpression: NEEDS_PARENTHESES,
-	ClassExpression: NEEDS_PARENTHESES,
-	FunctionExpression: NEEDS_PARENTHESES,
-	ObjectExpression: NEEDS_PARENTHESES, // TODO this results in e.g. `o = o || {}` => `o = o || ({})`
+	AwaitExpression: 17,
+	ArrowFunctionExpression: 17,
+	ClassExpression: 17,
+	FunctionExpression: 17,
+	ObjectExpression: 17, // TODO this results in e.g. `o = o || {}` => `o = o || ({})`
 	UpdateExpression: 16,
 	UnaryExpression: 15,
 	BinaryExpression: 14,
 	LogicalExpression: 13,
 	ConditionalExpression: 4,
 	AssignmentExpression: 3,
-	AwaitExpression: 2,
 	YieldExpression: 2,
 	RestElement: 1
 };
@@ -170,9 +170,9 @@ const EXPRESSIONS_PRECEDENCE: Record<string, number> = {
 function needs_parens(node: Expression, parent: BinaryExpression, is_right: boolean) {
 	const precedence = EXPRESSIONS_PRECEDENCE[node.type];
 
-	if (precedence === NEEDS_PARENTHESES) {
-		return true;
-	}
+	// if (precedence === NEEDS_PARENTHESES) {
+	// 	return true;
+	// }
 
 	const parent_precedence = EXPRESSIONS_PRECEDENCE[parent.type];
 
@@ -359,10 +359,9 @@ const handlers: Record<string, Handler> = {
 	ExpressionStatement(node: ExpressionStatement, state) {
 		const precedence = EXPRESSIONS_PRECEDENCE[node.expression.type]
 		if (
-			precedence === NEEDS_PARENTHESES ||
-			(precedence === 3 && (node.expression as AssignmentExpression).left.type === 'ObjectPattern')
+			precedence === 3 && (node.expression as AssignmentExpression).left.type === 'ObjectPattern'
 		) {
-			// Should always have parentheses or is an AssignmentExpression to an ObjectPattern
+			// is an AssignmentExpression to an ObjectPattern
 			return [
 				c('('),
 				...handle(node.expression, state),
@@ -887,7 +886,7 @@ const handlers: Record<string, Handler> = {
 		if (node.argument) {
 			const precedence = EXPRESSIONS_PRECEDENCE[node.argument.type];
 
-			if (precedence > EXPRESSIONS_PRECEDENCE.AwaitExpression) {
+			if (precedence && (precedence < EXPRESSIONS_PRECEDENCE.AwaitExpression)) {
 				return [c('await ('), ...handle(node.argument, state), c(')')];
 			} else {
 				return [c('await '), ...handle(node.argument, state)];

@@ -14,7 +14,7 @@ obj = {
 };
 
 empty = {};
-opts = opts || ({});
+opts = opts || {};
 
 obj = {
 	get foo() {
