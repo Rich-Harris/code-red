@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.30
+
+* Wrap `await` argument in parens if necessary ([#24](https://github.com/Rich-Harris/code-red/issues/24))
+
 ## 0.0.29
 
 * Handle sigils in comments ([#21](https://github.com/Rich-Harris/code-red/issues/21))
