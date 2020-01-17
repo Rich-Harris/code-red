@@ -1,12 +1,8 @@
 import * as acorn from 'acorn';
 import { walk } from 'estree-walker';
-import { Comment, Property, Node, ObjectExpression, Expression, ExpressionStatement } from 'estree';
+import { Property, Node, ObjectExpression, Expression } from 'estree';
 import { id, re } from './utils/id';
-
-interface CommentWithLocation extends Comment {
-	start: number;
-	end: number;
-}
+import { get_comment_handlers, CommentWithLocation } from './utils/comments';
 
 const sigils: Record<string, string> = {
 	'@': 'AT',
@@ -97,26 +93,14 @@ const flatten = (nodes: any[], target: any[]) => {
 const EMPTY = { type: 'Empty' };
 
 const acorn_opts = (comments: CommentWithLocation[], raw: string) => {
+	const { onComment } = get_comment_handlers(comments, raw);
 	return {
 		ecmaVersion: 11,
 		sourceType: 'module',
 		allowAwaitOutsideFunction: true,
 		allowImportExportEverywhere: true,
 		allowReturnOutsideFunction: true,
-		onComment: (block: boolean, value: string, start: number, end: number) => {
-			if (block && /\n/.test(value)) {
-				let a = start;
-				while (a > 0 && raw[a - 1] !== '\n') a -= 1;
-
-				let b = a;
-				while (/[ \t]/.test(raw[b])) b += 1;
-
-				const indentation = raw.slice(a, b);
-				value = value.replace(new RegExp(`^${indentation}`, 'gm'), '');
-			}
-
-			comments.push({ type: block ? 'Block' : 'Line', value, start, end });
-		}
+		onComment
 	} as any;
 };
 
@@ -125,29 +109,10 @@ const inject = (raw: string, node: Node, values: any[], comments: CommentWithLoc
 		comment.value = comment.value.replace(re, (m, i) => +i in values ? values[+i] : m);
 	});
 
+	const { enter, leave } = get_comment_handlers(comments, raw);
+
 	walk(node, {
-		enter(node) {
-			let comment;
-
-			while (comments[0] && comments[0].start < (node as any).start) {
-				comment = comments.shift();
-
-				comment.value = comment.value.replace(re, (match, id, at, hash, value) => {
-					if (hash) return `#${value}`;
-					if (at) return `@${value}`;
-
-					return match;
-				});
-
-				const next = comments[0] || node;
-				(comment as any).has_trailing_newline = (
-					comment.type === 'Line' ||
-					/\n/.test(raw.slice(comment.end, (next as any).start))
-				);
-
-				(node.leadingComments || (node.leadingComments = [])).push(comment);
-			}
-		},
+		enter,
 
 		leave(node, parent, key, index) {
 			if (node.type === 'Identifier') {
@@ -215,13 +180,7 @@ const inject = (raw: string, node: Node, values: any[], comments: CommentWithLoc
 				node.update = node.update === EMPTY ? null : node.update;
 			}
 
-			if (comments[0]) {
-				const slice = raw.slice((node as any).end, comments[0].start);
-
-				if (/^[,) \t]*$/.test(slice)) {
-					node.trailingComments = [comments.shift()];
-				}
-			}
+			leave(node);
 		}
 	});
 }
@@ -288,3 +247,19 @@ function handle_error(str: string, err: Error) {
 }
 
 export { print } from './print/index';
+
+export const parse = (source: string, opts: any): any => {
+	const comments: CommentWithLocation[] = [];
+	const { onComment, enter, leave } = get_comment_handlers(comments, source);
+	const ast = acorn.parse(source, { onComment, ...opts });
+	walk(ast as any, { enter, leave });
+	return ast;
+};
+
+export const parseExpressionAt = (source: string, index: number, opts: any): any => {
+	const comments: CommentWithLocation[] = [];
+	const { onComment, enter, leave } = get_comment_handlers(comments, source);
+	const ast = acorn.parseExpressionAt(source, index, { onComment, ...opts });
+	walk(ast as any, { enter, leave });
+	return ast;
+};
