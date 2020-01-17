@@ -156,7 +156,7 @@ const EXPRESSIONS_PRECEDENCE: Record<string, number> = {
 	ArrowFunctionExpression: 17,
 	ClassExpression: 17,
 	FunctionExpression: 17,
-	ObjectExpression: 17, // TODO this results in e.g. `o = o || {}` => `o = o || ({})`
+	ObjectExpression: 17,
 	UpdateExpression: 16,
 	UnaryExpression: 15,
 	BinaryExpression: 14,
@@ -169,11 +169,6 @@ const EXPRESSIONS_PRECEDENCE: Record<string, number> = {
 
 function needs_parens(node: Expression, parent: BinaryExpression, is_right: boolean) {
 	const precedence = EXPRESSIONS_PRECEDENCE[node.type];
-
-	// if (precedence === NEEDS_PARENTHESES) {
-	// 	return true;
-	// }
-
 	const parent_precedence = EXPRESSIONS_PRECEDENCE[parent.type];
 
 	if (precedence !== parent_precedence) {
