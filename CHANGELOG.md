@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.31
+
+* Expose wrapped versions of Acorn methods to facilitate comment preservation ([#26](https://github.com/Rich-Harris/code-red/issues/26))
+
 ## 0.0.30
 
 * Wrap `await` argument in parens if necessary ([#24](https://github.com/Rich-Harris/code-red/issues/24))
