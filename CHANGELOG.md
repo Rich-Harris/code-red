@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.0.32
+
+* Prevent syntax errors when combining comments ([#28](https://github.com/Rich-Harris/code-red/issues/28))
+
 ## 0.0.31
 
 * Expose wrapped versions of Acorn methods to facilitate comment preservation ([#26](https://github.com/Rich-Harris/code-red/issues/26))
