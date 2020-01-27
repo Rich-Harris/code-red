@@ -273,11 +273,17 @@ const handle_body = (nodes: Node[], state: State) => {
 			indent: state.indent
 		});
 
+		let add_newline = false;
+
 		while (state.comments.length) {
 			const comment = state.comments.shift();
+			const prefix = add_newline ? `\n${state.indent}` : ` `;
+
 			chunks.push(c(comment.type === 'Block'
-			? ` /*${comment.value}*/`
-			: ` //${comment.value}`));
+				? `${prefix}/*${comment.value}*/`
+				: `${prefix}//${comment.value}`));
+
+			add_newline = (comment.type === 'Line');
 		}
 
 		return chunks;

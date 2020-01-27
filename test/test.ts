@@ -441,7 +441,7 @@ describe('codered', () => {
 				fs.writeFileSync(`test/samples/${dir}/_actual.js`, actual.code);
 				fs.writeFileSync(`test/samples/${dir}/_actual.js.map`, actual.map.toString());
 
-				assert.equal(actual.code, expected.code);
+				assert.equal(actual.code.replace(/\t+$/gm, ''), expected.code.replace(/\t+$/gm, ''));
 				assert.deepEqual(actual.map, expected.map);
 			});
 		});
