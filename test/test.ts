@@ -446,6 +446,10 @@ describe('codered', () => {
 			});
 		});
 
+		it('throws on unhandled sigils', () => {
+			assert.throws(() => print(b`let foo = @bar;`), { message: 'Unhandled sigil @bar' });
+		});
+
 		it.skip('passes fuzz testing', () => {
 			for (let i = 0; i < 100; i += 1) {
 				const js = generateRandomJS({
