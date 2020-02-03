@@ -28,7 +28,9 @@ export function print(node: Node, opts: PrintOptions = {}): { code: string, map:
 	}
 
 	const {
-		getName = (x: string) => x
+		getName = (x: string) => {
+			throw new Error(`Unhandled sigil @${x}`);
+		}
 	} = opts;
 
 	let { map: scope_map, scope } = perisopic.analyze(node);
