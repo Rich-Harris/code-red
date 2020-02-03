@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.1.0
+
+* Throw on unhandled sigils ([#30](https://github.com/Rich-Harris/code-red/pull/30))
+
 ## 0.0.32
 
 * Prevent syntax errors when combining comments ([#28](https://github.com/Rich-Harris/code-red/issues/28))
