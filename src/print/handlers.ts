@@ -153,7 +153,6 @@ const EXPRESSIONS_PRECEDENCE: Record<string, number> = {
 	CallExpression: 19,
 	NewExpression: 19,
 	AwaitExpression: 17,
-	ArrowFunctionExpression: 17,
 	ClassExpression: 17,
 	FunctionExpression: 17,
 	ObjectExpression: 17,
@@ -162,6 +161,7 @@ const EXPRESSIONS_PRECEDENCE: Record<string, number> = {
 	BinaryExpression: 14,
 	LogicalExpression: 13,
 	ConditionalExpression: 4,
+	ArrowFunctionExpression: 3,
 	AssignmentExpression: 3,
 	YieldExpression: 2,
 	RestElement: 1
