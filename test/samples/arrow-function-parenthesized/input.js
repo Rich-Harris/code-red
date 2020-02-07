@@ -1,0 +1,1 @@
+module.exports = ({ b, x }) => b`foo || ${x`bar => bar`}`;

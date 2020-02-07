@@ -398,6 +398,12 @@ describe('codered', () => {
 				mappings: 'YASK,EAAE'
 			});
 		});
+
+		it('errors on invalid expressions', () => {
+			assert.throws(() => {
+				x`this is broken`;
+			}, /Unexpected token 'is'/);
+		});
 	});
 
 	describe('p', () => {
