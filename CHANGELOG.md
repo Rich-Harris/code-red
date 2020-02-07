@@ -1,5 +1,10 @@
 # code-red changelog
 
+## 0.1.1
+
+* Wrap arrow functions in parens as appropriate ([#31](https://github.com/Rich-Harris/code-red/issues/31))
+* Throw on invalid expressions ([#31](https://github.com/Rich-Harris/code-red/issues/31))
+
 ## 0.1.0
 
 * Throw on unhandled sigils ([#30](https://github.com/Rich-Harris/code-red/pull/30))
