@@ -206,6 +206,10 @@ export function x(strings: TemplateStringsArray, ...values: any[]): Expression {
 
 	try {
 		const expression = acorn.parseExpressionAt(str, 0, acorn_opts(comments, str)) as Expression;
+		const match = /\S+/.exec(str.slice((expression as any).end));
+		if (match) {
+			throw new Error(`Unexpected token '${match[0]}'`);
+		}
 
 		inject(str, expression, values, comments);
 
