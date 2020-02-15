@@ -70,6 +70,70 @@ function add(foo, bar) {
 */
 ```
 
+## Prefixes
+
+### `@`-prefixed names (replaceable globals)
+
+```js
+// input
+import { x } from 'code-red';
+x`@foo(bar)`
+
+// output
+FOO(bar)
+```
+
+### `#`-prefixed names (automatically deconflicted)
+
+```js
+// input
+import { x } from 'code-red';
+x`
+function foo(#bar) {
+	return #bar * bar;
+}`;
+
+// output
+function foo(bar$1) {
+	return bar$1 * bar;
+}
+```
+
+```js
+// input
+import { b } from 'code-red';
+b`const foo = #bar => #bar * 2`;
+
+// output
+const foo = bar => bar * 2;
+```
+
+```js
+// input
+import { x } from 'code-red';
+const bar = x`#bar`;
+return x`
+	function foo(#bar) {
+		const bar = 'x';
+
+		${bar} += 1;
+
+		return (#bar) => {
+			console.log(${bar});
+		};
+	}
+`;
+
+// output
+function foo(bar$1) {
+	const bar = "x";
+	bar$1 += 1;
+
+	return bar => {
+		console.log(bar);
+	};
+}
+```
 
 ## Optimiser
 
