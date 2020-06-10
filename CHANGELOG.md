@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.1.2
+
+* Don't crash when using an arrow function as a statement ([#38](https://github.com/Rich-Harris/code-red/issues/38))
+
 ## 0.1.1
 
 * Wrap arrow functions in parens as appropriate ([#31](https://github.com/Rich-Harris/code-red/issues/31))
