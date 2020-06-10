@@ -358,9 +358,9 @@ const handlers: Record<string, Handler> = {
 	},
 
 	ExpressionStatement(node: ExpressionStatement, state) {
-		const precedence = EXPRESSIONS_PRECEDENCE[node.expression.type]
 		if (
-			precedence === 3 && (node.expression as AssignmentExpression).left.type === 'ObjectPattern'
+			node.expression.type === 'AssignmentExpression' &&
+			node.expression.left.type === 'ObjectPattern'
 		) {
 			// is an AssignmentExpression to an ObjectPattern
 			return [
