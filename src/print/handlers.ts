@@ -111,8 +111,9 @@ function c(content: string, node?: Node): Chunk {
 }
 
 const OPERATOR_PRECEDENCE = {
-	'||': 3,
-	'&&': 4,
+	'||': 2,
+	'&&': 3,
+	'??': 4,
 	'|': 5,
 	'^': 6,
 	'&': 7,
