@@ -105,11 +105,13 @@ describe('codered', () => {
 						type: 'MemberExpression',
 						object: { type: 'Identifier', name: 'console' },
 						property: { type: 'Identifier', name: 'log' },
+						optional: false,
 						computed: false
 					},
 					arguments: [
 						{ type: 'Identifier', name }
-					]
+					],
+					optional: false
 				}
 			});
 
@@ -180,7 +182,8 @@ describe('codered', () => {
 				callee: { type: 'Identifier', name: '@foo' },
 				arguments: [
 					{ type: 'Identifier', name: 'bar' }
-				]
+				],
+				optional: false
 			});
 
 			const id = x`@foo`;
