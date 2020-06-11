@@ -1263,6 +1263,11 @@ const handlers: Record<string, Handler> = {
 		return chunks;
 	},
 
+	// TODO: use proper AST class once types are updated
+	ChainExpression(node: any, state) {
+		return handle(node.expression, state);
+	},
+
 	CallExpression(node: CallExpression, state) {
 		const chunks = [];
 
@@ -1277,6 +1282,11 @@ const handlers: Record<string, Handler> = {
 			);
 		} else {
 			chunks.push(...handle(node.callee, state));
+		}
+
+		// TODO: update once types are updated
+		if ((node as any).optional) {
+			chunks.push(c('?.'));
 		}
 
 		const args = node.arguments.map(arg => handle(arg, state));
@@ -1320,6 +1330,10 @@ const handlers: Record<string, Handler> = {
 		}
 
 		if (node.computed) {
+			// TODO: update once types are updated
+			if ((node as any).optional) {
+				chunks.push(c('?.'));
+			}
 			chunks.push(
 				c('['),
 				...handle(node.property, state),
@@ -1327,7 +1341,8 @@ const handlers: Record<string, Handler> = {
 			);
 		} else {
 			chunks.push(
-				c('.'),
+				// TODO: update once types are updated
+				c((node as any).optional ? '?.' : '.'),
 				...handle(node.property, state)
 			);
 		}
