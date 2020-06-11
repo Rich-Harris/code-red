@@ -111,8 +111,9 @@ function c(content: string, node?: Node): Chunk {
 }
 
 const OPERATOR_PRECEDENCE = {
-	'||': 3,
-	'&&': 4,
+	'||': 2,
+	'&&': 3,
+	'??': 4,
 	'|': 5,
 	'^': 6,
 	'&': 7,
@@ -136,9 +137,6 @@ const OPERATOR_PRECEDENCE = {
 	'/': 12,
 	'**': 13,
 };
-
-// Enables parenthesis regardless of precedence
-const NEEDS_PARENTHESES = 17;
 
 const EXPRESSIONS_PRECEDENCE: Record<string, number> = {
 	ArrayExpression: 20,

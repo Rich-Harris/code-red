@@ -95,7 +95,7 @@ const EMPTY = { type: 'Empty' };
 const acorn_opts = (comments: CommentWithLocation[], raw: string) => {
 	const { onComment } = get_comment_handlers(comments, raw);
 	return {
-		ecmaVersion: 11,
+		ecmaVersion: 2020,
 		sourceType: 'module',
 		allowAwaitOutsideFunction: true,
 		allowImportExportEverywhere: true,
