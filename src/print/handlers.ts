@@ -52,6 +52,7 @@ import {
 	ConditionalExpression,
 	NewExpression,
 	MemberExpression,
+	ChainExpression,
 	MetaProperty,
 	ForInStatement,
 	ImportSpecifier,
@@ -1228,6 +1229,10 @@ const handlers: Record<string, Handler> = {
 		return chunks;
 	},
 
+	ChainExpression(node: ChainExpression, state) {
+		return handle(node.expression, state);
+	},
+
 	NewExpression(node: NewExpression, state) {
 		const chunks = [c('new ')];
 
@@ -1284,8 +1289,7 @@ const handlers: Record<string, Handler> = {
 			chunks.push(...handle(node.callee, state));
 		}
 
-		// TODO: update once types are updated
-		if ((node as any).optional) {
+		if (node.optional) {
 			chunks.push(c('?.'));
 		}
 
@@ -1330,8 +1334,7 @@ const handlers: Record<string, Handler> = {
 		}
 
 		if (node.computed) {
-			// TODO: update once types are updated
-			if ((node as any).optional) {
+			if (node.optional) {
 				chunks.push(c('?.'));
 			}
 			chunks.push(
@@ -1341,8 +1344,7 @@ const handlers: Record<string, Handler> = {
 			);
 		} else {
 			chunks.push(
-				// TODO: update once types are updated
-				c((node as any).optional ? '?.' : '.'),
+				c(node.optional ? '?.' : '.'),
 				...handle(node.property, state)
 			);
 		}
