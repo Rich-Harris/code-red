@@ -1,5 +1,10 @@
 # code-red changelog
 
+## 0.1.3
+
+* Support nullish coalescing operator ([#42](https://github.com/Rich-Harris/code-red/issues/42))
+* Support optional chaining ([#43](https://github.com/Rich-Harris/code-red/issues/43))
+
 ## 0.1.2
 
 * Don't crash when using an arrow function as a statement ([#38](https://github.com/Rich-Harris/code-red/issues/38))
