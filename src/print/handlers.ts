@@ -57,7 +57,8 @@ import {
 	ForInStatement,
 	ImportSpecifier,
 	ForOfStatement,
-	FunctionExpression
+	FunctionExpression,
+	SimpleCallExpression
 } from 'estree';
 import { re } from '../utils/id';
 
@@ -1229,10 +1230,6 @@ const handlers: Record<string, Handler> = {
 		return chunks;
 	},
 
-	ChainExpression(node: ChainExpression, state) {
-		return handle(node.expression, state);
-	},
-
 	NewExpression(node: NewExpression, state) {
 		const chunks = [c('new ')];
 
@@ -1268,7 +1265,6 @@ const handlers: Record<string, Handler> = {
 		return chunks;
 	},
 
-	// TODO: use proper AST class once types are updated
 	ChainExpression(node: any, state) {
 		return handle(node.expression, state);
 	},
@@ -1289,7 +1285,7 @@ const handlers: Record<string, Handler> = {
 			chunks.push(...handle(node.callee, state));
 		}
 
-		if (node.optional) {
+		if ((node as SimpleCallExpression).optional) {
 			chunks.push(c('?.'));
 		}
 
