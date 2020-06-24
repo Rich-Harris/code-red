@@ -1,6 +1,6 @@
 import * as acorn from 'acorn';
 import { walk } from 'estree-walker';
-import { Property, Node, ObjectExpression, Expression } from 'estree';
+import { Property, Node, ObjectExpression, Expression, SpreadElement } from 'estree';
 import { id, re } from './utils/id';
 import { get_comment_handlers, CommentWithLocation } from './utils/comments';
 
@@ -219,7 +219,7 @@ export function x(strings: TemplateStringsArray, ...values: any[]): Expression {
 	}
 }
 
-export function p(strings: TemplateStringsArray, ...values: any[]): Property {
+export function p(strings: TemplateStringsArray, ...values: any[]): Property | SpreadElement {
 	const str = `{${join(strings)}}`;
 	const comments: CommentWithLocation[] = [];
 
