@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.1.4
+
+* Fix rendering of nullish coalescing operator alongside other logical operators ([#52](https://github.com/Rich-Harris/code-red/issues/52))
+
 ## 0.1.3
 
 * Support nullish coalescing operator ([#42](https://github.com/Rich-Harris/code-red/issues/42))
