@@ -58,7 +58,8 @@ import {
 	ImportSpecifier,
 	ForOfStatement,
 	FunctionExpression,
-	SimpleCallExpression
+	SimpleCallExpression,
+	LogicalExpression
 } from 'estree';
 import { re } from '../utils/id';
 
@@ -167,7 +168,18 @@ const EXPRESSIONS_PRECEDENCE: Record<string, number> = {
 	RestElement: 1
 };
 
-function needs_parens(node: Expression, parent: BinaryExpression, is_right: boolean) {
+function needs_parens(node: Expression, parent: BinaryExpression | LogicalExpression, is_right: boolean) {
+	// special case where logical expressions and coalesce expressions cannot be mixed,
+	// either of them need to be wrapped with parentheses
+	if (
+		node.type === 'LogicalExpression' &&
+		parent.type === 'LogicalExpression' &&
+		((parent.operator === '??' && node.operator !== '??') ||
+			(parent.operator !== '??' && node.operator === '??'))
+	) {
+		return true;
+	}
+
 	const precedence = EXPRESSIONS_PRECEDENCE[node.type];
 	const parent_precedence = EXPRESSIONS_PRECEDENCE[parent.type];
 
