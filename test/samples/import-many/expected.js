@@ -14,4 +14,4 @@ import {
 	mno,
 	nop,
 	opq
-} from "x";
+} from 'x';
