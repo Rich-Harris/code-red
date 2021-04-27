@@ -14,9 +14,9 @@ module.exports = ({ b, p }) => {
 
 		obj = { "foo": foo };
 
-    obj = { [foo]: foo };
+		obj = { [foo]: foo };
 
-    obj = { [foo]: "foo" };
+		obj = { [foo]: "foo" };
 
 		let #blah;
 		obj = { blah: #blah };
