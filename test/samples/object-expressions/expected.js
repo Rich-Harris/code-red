@@ -2,6 +2,8 @@ obj = { foo, bar, baz: qux };
 obj = { "1": "1" };
 obj = { true: true };
 obj = { foo };
+obj = { [foo]: foo };
+obj = { [foo]: "foo" };
 let blah;
 obj = { blah };
 obj = { blah };
