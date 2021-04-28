@@ -1,5 +1,10 @@
 # code-red changelog
 
+## 0.1.7
+
+* Include dependencies ([#56](https://github.com/Rich-Harris/code-red/pull/56))
+* Add `sourceMapEncodeMappings` option ([#51](https://github.com/Rich-Harris/code-red/pull/51))
+
 ## 0.1.6
 
 * Only use shorthand for non-computed properties ([#58](https://github.com/Rich-Harris/code-red/pull/58))
