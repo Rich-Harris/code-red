@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.1.6
+
+* Only use shorthand for non-computed properties ([#58](https://github.com/Rich-Harris/code-red/pull/58))
+
 ## 0.1.5
 
 * Use `node.raw` where possible ([#55](https://github.com/Rich-Harris/code-red/pull/55))
