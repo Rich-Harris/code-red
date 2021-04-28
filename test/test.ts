@@ -5,6 +5,7 @@ import { generateRandomJS } from 'eslump';
 import * as codered from '../src/index';
 import { ObjectExpression, Identifier, Node } from 'estree';
 import { walk } from 'estree-walker';
+import { decode } from 'sourcemap-codec';
 
 const d = (str: string) => str.replace(/^\t{5}/gm, '').trim();
 
@@ -457,6 +458,27 @@ describe('codered', () => {
 
 		it('throws on unhandled sigils', () => {
 			assert.throws(() => print(b`let foo = @bar;`), { message: 'Unhandled sigil @bar' });
+		});
+
+		it('can return sourcemap with decoded mappings', () => {
+				const dir = 'sourcemap';
+				const input = require(`./samples/${dir}/input.js`)({ b, x, p });
+
+				const expected = {
+					code: read(`test/samples/${dir}/expected.js`),
+					map: JSON.parse(read(`test/samples/${dir}/expected.js.map`) || '{}')
+				};
+				if (expected.map && expected.map.mappings) {
+					expected.map.mappings = decode(expected.map.mappings);
+				}
+
+				const actual = print(input, {
+					sourceMapSource: 'input.js',
+					getName: name => name.toUpperCase(),
+					sourceMapEncodeMappings: false
+				});
+
+				assert.deepEqual(actual.map, expected.map);
 		});
 
 		it.skip('passes fuzz testing', () => {

@@ -16,6 +16,7 @@ type PrintOptions = {
 	file?: string;
 	sourceMapSource?: string;
 	sourceMapContent?: string;
+	sourceMapEncodeMappings?: boolean; // default true
 	getName?: (name: string) => string;
 };
 
@@ -93,7 +94,8 @@ export function print(node: Node, opts: PrintOptions = {}): { code: string, map:
 		names: [] as string[],
 		sources: [opts.sourceMapSource || null],
 		sourcesContent: [opts.sourceMapContent || null],
-		mappings: encode(mappings)
+		mappings: opts.sourceMapEncodeMappings == undefined || opts.sourceMapEncodeMappings
+			? encode(mappings) : mappings
 	};
 
 	Object.defineProperties(map, {
