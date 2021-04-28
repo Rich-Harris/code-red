@@ -1,13 +1,15 @@
 import * as acorn from 'acorn';
 import { walk } from 'estree-walker';
 import { id, re } from './utils/id.js';
-import { get_comment_handlers, CommentWithLocation } from './utils/comments.js';
+import { get_comment_handlers } from './utils/comments.js';
 
 /** @typedef {import('estree').Expression} Expression */
 /** @typedef {import('estree').Node} Node */
 /** @typedef {import('estree').ObjectExpression} ObjectExpression */
 /** @typedef {import('estree').Property} Property */
 /** @typedef {import('estree').SpreadElement} SpreadElement */
+
+/** @typedef {import('./utils/comments').CommentWithLocation} CommentWithLocation */
 
 /** @type {Record<string, string>} */
 const sigils = {
@@ -310,7 +312,7 @@ function handle_error(str, err) {
 	throw err;
 }
 
-export { print } from './print/index';
+export { print } from './print/index.js';
 
 /**
  * @param {string} source

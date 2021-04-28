@@ -1,4 +1,4 @@
-module.exports = ({ b }) => {
+export default ({ b }) => {
 	const one = b`console.log(one);`;
 
 	const two = b`

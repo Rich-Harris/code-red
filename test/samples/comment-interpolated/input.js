@@ -1,1 +1,1 @@
-module.exports = ({ x }) => x`a = /* ${"the answer"} */ ${42}`
+export default ({ x }) => x`a = /* ${"the answer"} */ ${42}`

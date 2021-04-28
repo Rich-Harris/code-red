@@ -1,4 +1,4 @@
-module.exports = ({ x, b }) => {
+export default ({ x, b }) => {
 	const i = x`i`;
 
 	return b`

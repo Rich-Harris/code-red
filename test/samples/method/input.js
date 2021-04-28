@@ -1,4 +1,4 @@
-module.exports = ({ b }) => b`obj = {
+export default ({ b }) => b`obj = {
 	foo() {
 		console.log('foo');
 	},

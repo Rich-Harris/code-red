@@ -1,4 +1,4 @@
-module.exports = ({ x }) => {
+export default ({ x }) => {
 	const bar = x`bar`;
 	const baz = x`baz`;
 

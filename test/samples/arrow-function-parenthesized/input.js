@@ -1,1 +1,1 @@
-module.exports = ({ b, x }) => b`foo || ${x`bar => bar`}`;
+export default ({ b, x }) => b`foo || ${x`bar => bar`}`;

@@ -1,1 +1,1 @@
-module.exports = ({ x }) => x`@foo(bar)`;
+export default ({ x }) => x`@foo(bar)`;

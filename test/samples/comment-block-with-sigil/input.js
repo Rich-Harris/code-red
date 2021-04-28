@@ -1,3 +1,3 @@
-module.exports = ({ b }) => b`
+export default ({ b }) => b`
 	a = /* #b */ c
 `;

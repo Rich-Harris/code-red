@@ -1,4 +1,4 @@
-module.exports = ({ b }) => {
+export default ({ b }) => {
 	const bar = b`import { bar } from 'y';`[0];
 
 	return b`

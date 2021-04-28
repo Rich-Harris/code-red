@@ -11,7 +11,8 @@
     "target": "ES5",
     "module": "ES6",
     "include": [
-        "src"
+        "src",
+        "test"
     ],
     "exclude": [
         "node_modules"

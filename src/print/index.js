@@ -1,5 +1,5 @@
 import * as perisopic from 'periscopic';
-import { handle } from './handlers';
+import { handle } from './handlers.js';
 import { encode } from 'sourcemap-codec';
 
 /** @type {(str?: string) => string} str */

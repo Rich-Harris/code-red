@@ -5,6 +5,7 @@
   "repository": "Rich-Harris/code-red",
   "main": "dist/code-red.js",
   "module": "dist/code-red.mjs",
+  "type": "module",
   "types": "types/index.d.ts",
   "files": [
     "dist",
@@ -22,13 +23,14 @@
     "sander": "^0.6.0",
     "sucrase": "^3.17.0",
     "tiny-glob": "^0.2.6",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.2",
+    "uvu": "^0.5.1"
   },
   "scripts": {
     "build-declarations": "tsc -d && node scripts/move-type-declarations.js",
     "build": "npm run build-declarations && rollup -c",
     "dev": "rollup -cw",
-    "test": "mocha --opts mocha.opts",
+    "test": "uvu test test.js",
     "prepublishOnly": "npm test && npm run build",
     "repl": "node -e \"const { x, b, print } = require('./')\" -i"
   },

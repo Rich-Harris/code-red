@@ -1,4 +1,4 @@
-module.exports = ({ b }) => b`
+export default ({ b }) => b`
 function foo() {
 	console.log(new.target);
 }
