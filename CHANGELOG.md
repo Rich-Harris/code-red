@@ -1,5 +1,10 @@
 # code-red changelog
 
+## 0.1.5
+
+* Use `node.raw` where possible ([#55](https://github.com/Rich-Harris/code-red/pull/55))
+* Support BigInt (([#54](https://github.com/Rich-Harris/code-red/issues/54)))
+
 ## 0.1.4
 
 * Fix rendering of nullish coalescing operator alongside other logical operators ([#52](https://github.com/Rich-Harris/code-red/issues/52))
