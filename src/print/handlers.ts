@@ -1049,7 +1049,7 @@ const handlers: Record<string, Handler> = {
 			return value;
 		}
 
-		if (node.value.type === 'Identifier' && (
+		if (!node.computed && node.value.type === 'Identifier' && (
 			(node.key.type === 'Identifier' && node.key.name === value[0].content) ||
 			(node.key.type === 'Literal' && node.key.value === value[0].content)
 		)) {
