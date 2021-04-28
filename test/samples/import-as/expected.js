@@ -1,1 +1,1 @@
-import { foo as bar } from "x";
+import { foo as bar } from 'x';

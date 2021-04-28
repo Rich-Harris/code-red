@@ -1392,12 +1392,12 @@ const handlers: Record<string, Handler> = {
 		return [c(name, node)];
 	},
 
-	Literal(node: Literal | RegExpLiteral, state) {
+	Literal(node: Literal, state) {
 		if (typeof node.value === 'string') {
 			return [
 				// TODO do we need to handle weird unicode characters somehow?
 				// str.replace(/\\u(\d{4})/g, (m, n) => String.fromCharCode(+n))
-				c(JSON.stringify(node.value).replace(re, (_m, _i, at, hash, name) => {
+				c((node.raw || JSON.stringify(node.value)).replace(re, (_m, _i, at, hash, name) => {
 					if (at)	return '@' + name;
 					if (hash) return '#' + name;
 					throw new Error(`this shouldn't happen`);
@@ -1405,12 +1405,7 @@ const handlers: Record<string, Handler> = {
 			];
 		}
 
-		const { regex } = node as RegExpLiteral; // TODO is this right?
-		if (regex) {
-			return [c(`/${regex.pattern}/${regex.flags}`, node)];
-		}
-
-		return [c(String(node.value), node)];
+		return [c(node.raw || String(node.value), node)];
 	}
 };
 

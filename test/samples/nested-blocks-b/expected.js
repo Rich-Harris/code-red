@@ -1,2 +1,2 @@
 let foo = bar;
-return { hello: "world" };
+return { hello: 'world' };

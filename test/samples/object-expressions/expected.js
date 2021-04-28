@@ -9,7 +9,7 @@ obj = { a: b };
 
 obj = {
 	method() {
-		console.log("hello");
+		console.log('hello');
 	}
 };
 
