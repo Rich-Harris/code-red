@@ -1,5 +1,7 @@
 {
     "compilerOptions": {
+        "allowJs": true,
+        "checkJs": true,
         "noImplicitAny": true,
         "diagnostics": true,
         "noImplicitThis": true,

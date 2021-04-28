@@ -1,35 +1,46 @@
 import * as perisopic from 'periscopic';
 import { handle } from './handlers';
-import { Node, Program } from 'estree';
 import { encode } from 'sourcemap-codec';
 
-let btoa: (str?: string) => void = () => {
+/** @type {(str?: string) => string} str */
+let btoa = () => {
 	throw new Error('Unsupported environment: `window.btoa` or `Buffer` should be supported.');
 };
+
 if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
-	btoa = (str: string) => window.btoa(unescape(encodeURIComponent(str)));
+	btoa = (str) => window.btoa(unescape(encodeURIComponent(str)));
 } else if (typeof Buffer === 'function') {
-	btoa = (str: string) => Buffer.from(str, 'utf-8').toString('base64');
+	btoa = (str) => Buffer.from(str, 'utf-8').toString('base64');
 }
 
-type PrintOptions = {
-	file?: string;
-	sourceMapSource?: string;
-	sourceMapContent?: string;
-	sourceMapEncodeMappings?: boolean; // default true
-	getName?: (name: string) => string;
-};
+/** @typedef {import('estree').Node} Node */
 
-export function print(node: Node, opts: PrintOptions = {}): { code: string, map: any } {
+/**
+ * @typedef {{
+ *   file?: string;
+ *   sourceMapSource?: string;
+ *   sourceMapContent?: string;
+ *   sourceMapEncodeMappings?: boolean; // default true
+ *   getName?: (name: string) => string;
+ * }} PrintOptions
+ */
+
+/**
+ * @param {Node} node
+ * @param {PrintOptions} opts
+ * @returns {{ code: string, map: any }} // TODO
+ */
+export function print(node, opts = {}) {
 	if (Array.isArray(node)) {
 		return print({
 			type: 'Program',
-			body: node
-		} as unknown as Program, opts);
+			body: node,
+			sourceType: 'module'
+		}, opts);
 	}
 
 	const {
-		getName = (x: string) => {
+		getName = (x) => {
 			throw new Error(`Unhandled sigil @${x}`);
 		}
 	} = opts;
@@ -46,12 +57,16 @@ export function print(node: Node, opts: PrintOptions = {}): { code: string, map:
 		comments: []
 	});
 
-	type Segment = [number, number, number, number];
+	/** @typedef {[number, number, number, number]} Segment */
 
 	let code = '';
-	let mappings: Segment[][] = [];
-	let current_line: Segment[] = [];
 	let current_column = 0;
+
+	/** @type {Segment[][]} */
+	let mappings = [];
+
+	/** @type {Segment[]} */
+	let current_line = [];
 
 	for (let i = 0; i < chunks.length; i += 1) {
 		const chunk = chunks[i];
@@ -91,7 +106,8 @@ export function print(node: Node, opts: PrintOptions = {}): { code: string, map:
 
 	const map = {
 		version: 3,
-		names: [] as string[],
+		/** @type {string[]} */
+		names: [],
 		sources: [opts.sourceMapSource || null],
 		sourcesContent: [opts.sourceMapContent || null],
 		mappings: opts.sourceMapEncodeMappings == undefined || opts.sourceMapEncodeMappings
