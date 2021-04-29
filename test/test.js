@@ -1,3 +1,4 @@
+// @ts-check
 import * as fs from 'fs';
 import * as acorn from 'acorn';
 import * as uvu from 'uvu';

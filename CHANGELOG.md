@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.2.0
+
+* Rewrite in JavaScript
+
 ## 0.1.7
 
 * Include dependencies ([#56](https://github.com/Rich-Harris/code-red/pull/56))

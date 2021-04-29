@@ -2,6 +2,9 @@
     "compilerOptions": {
         "allowJs": true,
         "checkJs": true,
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "declarationDir": "types",
         "noImplicitAny": true,
         "diagnostics": true,
         "noImplicitThis": true,
@@ -11,8 +14,7 @@
     "target": "ES5",
     "module": "ES6",
     "include": [
-        "src",
-        "test"
+        "src"
     ],
     "exclude": [
         "node_modules"

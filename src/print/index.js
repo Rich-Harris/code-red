@@ -40,7 +40,7 @@ export function print(node, opts = {}) {
 	}
 
 	const {
-		getName = (x) => {
+		getName = /** @param {string} x */ (x) => {
 			throw new Error(`Unhandled sigil @${x}`);
 		}
 	} = opts;
