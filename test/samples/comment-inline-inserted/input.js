@@ -1,4 +1,4 @@
-module.exports = ({ b, x }) => {
+export default ({ b, x }) => {
 	const insert = b`"use strict";`;
 
 	const node = {

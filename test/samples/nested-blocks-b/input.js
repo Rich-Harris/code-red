@@ -1,4 +1,4 @@
-module.exports = ({ b, x }) => {
+export default ({ b, x }) => {
 	const vars = [{ id: x`foo`, init: x`bar` }];
 
 	const return_value = x`{

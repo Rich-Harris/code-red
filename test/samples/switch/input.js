@@ -1,4 +1,4 @@
-module.exports = ({ b }) => b`
+export default ({ b }) => b`
 switch (foo) {
 	case 1:
 		blah();

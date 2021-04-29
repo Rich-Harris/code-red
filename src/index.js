@@ -1,23 +1,36 @@
 import * as acorn from 'acorn';
 import { walk } from 'estree-walker';
-import { Property, Node, ObjectExpression, Expression, SpreadElement } from 'estree';
-import { id, re } from './utils/id';
-import { get_comment_handlers, CommentWithLocation } from './utils/comments';
+import { id, re } from './utils/id.js';
+import { get_comment_handlers } from './utils/comments.js';
 
-const sigils: Record<string, string> = {
+/** @typedef {import('estree').Expression} Expression */
+/** @typedef {import('estree').Node} Node */
+/** @typedef {import('estree').ObjectExpression} ObjectExpression */
+/** @typedef {import('estree').Property} Property */
+/** @typedef {import('estree').SpreadElement} SpreadElement */
+
+/** @typedef {import('./utils/comments').CommentWithLocation} CommentWithLocation */
+
+/** @type {Record<string, string>} */
+const sigils = {
 	'@': 'AT',
 	'#': 'HASH'
 };
 
-const join = (strings: TemplateStringsArray) => {
+/** @param {TemplateStringsArray} strings */
+const join = (strings) => {
 	let str = strings[0];
 	for (let i = 1; i < strings.length; i += 1) {
 		str += `_${id}_${i - 1}_${strings[i]}`;
 	}
-	return str.replace(/([@#])(\w+)/g, (_m, sigil: string, name: string) => `_${id}_${sigils[sigil]}_${name}`);
+	return str.replace(/([@#])(\w+)/g, (_m, sigil, name) => `_${id}_${sigils[sigil]}_${name}`);
 };
 
-const flatten_body = (array: any[], target: any[]) => {
+/**
+ * @param {any[]} array
+ * @param {any[]} target
+ */
+const flatten_body = (array, target) => {
 	for (let i = 0; i < array.length; i += 1) {
 		const statement = array[i];
 		if (Array.isArray(statement)) {
@@ -56,7 +69,11 @@ const flatten_body = (array: any[], target: any[]) => {
 	return target;
 }
 
-const flatten_properties = (array: any[], target: any[]) => {
+/**
+ * @param {any[]} array
+ * @param {any[]} target
+ */
+const flatten_properties = (array, target) => {
 	for (let i = 0; i < array.length; i += 1) {
 		const property = array[i];
 
@@ -73,7 +90,11 @@ const flatten_properties = (array: any[], target: any[]) => {
 	return target;
 }
 
-const flatten = (nodes: any[], target: any[]) => {
+/**
+ * @param {any[]} nodes
+ * @param {any[]} target
+ */
+const flatten = (nodes, target) => {
 	for (let i = 0; i < nodes.length; i += 1) {
 		const node = nodes[i];
 
@@ -92,7 +113,13 @@ const flatten = (nodes: any[], target: any[]) => {
 
 const EMPTY = { type: 'Empty' };
 
-const acorn_opts = (comments: CommentWithLocation[], raw: string) => {
+/**
+ *
+ * @param {CommentWithLocation[]} comments
+ * @param {string} raw
+ * @returns {any}
+ */
+const acorn_opts = (comments, raw) => {
 	const { onComment } = get_comment_handlers(comments, raw);
 	return {
 		ecmaVersion: 2020,
@@ -101,10 +128,16 @@ const acorn_opts = (comments: CommentWithLocation[], raw: string) => {
 		allowImportExportEverywhere: true,
 		allowReturnOutsideFunction: true,
 		onComment
-	} as any;
+	};
 };
 
-const inject = (raw: string, node: Node, values: any[], comments: CommentWithLocation[]) => {
+/**
+ * @param {string} raw
+ * @param {Node} node
+ * @param {any[]} values
+ * @param {CommentWithLocation[]} comments
+ */
+const inject = (raw, node, values, comments) => {
 	comments.forEach(comment => {
 		comment.value = comment.value.replace(re, (m, i) => +i in values ? values[+i] : m);
 	});
@@ -147,7 +180,7 @@ const inject = (raw: string, node: Node, values: any[], comments: CommentWithLoc
 
 			if (node.type === 'TemplateElement') {
 				re.lastIndex = 0;
-				node.value.raw = (node.value.raw as string).replace(re, (m, i) => +i in values ? values[+i] : m);
+				node.value.raw = node.value.raw.replace(re, (m, i) => +i in values ? values[+i] : m);
 			}
 
 			if (node.type === 'Program' || node.type === 'BlockStatement') {
@@ -180,17 +213,26 @@ const inject = (raw: string, node: Node, values: any[], comments: CommentWithLoc
 				node.update = node.update === EMPTY ? null : node.update;
 			}
 
+			// @ts-ignore
 			leave(node);
 		}
 	});
 }
 
-export function b(strings: TemplateStringsArray, ...values: any[]): Node[] {
+/**
+ *
+ * @param {TemplateStringsArray} strings
+ * @param  {any[]} values
+ * @returns {Node[]}
+ */
+export function b(strings, ...values) {
 	const str = join(strings);
-	const comments: CommentWithLocation[] = [];
+
+	/** @type {CommentWithLocation[]} */
+	const comments = [];
 
 	try {
-		const ast: any = acorn.parse(str,  acorn_opts(comments, str));
+		const ast = /** @type {any} */ (acorn.parse(str, acorn_opts(comments, str)));
 
 		inject(str, ast, values, comments);
 
@@ -200,13 +242,21 @@ export function b(strings: TemplateStringsArray, ...values: any[]): Node[] {
 	}
 }
 
-export function x(strings: TemplateStringsArray, ...values: any[]): Expression {
+/**
+ *
+ * @param {TemplateStringsArray} strings
+ * @param  {any[]} values
+ * @returns {Expression & { start: Number, end: number }}
+ */
+export function x(strings, ...values) {
 	const str = join(strings);
-	const comments: CommentWithLocation[] = [];
+
+	/** @type {CommentWithLocation[]} */
+	const comments = [];
 
 	try {
-		const expression = acorn.parseExpressionAt(str, 0, acorn_opts(comments, str)) as Expression;
-		const match = /\S+/.exec(str.slice((expression as any).end));
+		const expression = /** @type {Expression & { start: Number, end: number }} */ (acorn.parseExpressionAt(str, 0, acorn_opts(comments, str)));
+		const match = /\S+/.exec(str.slice(expression.end));
 		if (match) {
 			throw new Error(`Unexpected token '${match[0]}'`);
 		}
@@ -219,12 +269,20 @@ export function x(strings: TemplateStringsArray, ...values: any[]): Expression {
 	}
 }
 
-export function p(strings: TemplateStringsArray, ...values: any[]): Property | SpreadElement {
+/**
+ *
+ * @param {TemplateStringsArray} strings
+ * @param  {any[]} values
+ * @returns {(Property | SpreadElement) & { start: Number, end: number }}
+ */
+export function p(strings, ...values) {
 	const str = `{${join(strings)}}`;
-	const comments: CommentWithLocation[] = [];
+
+	/** @type {CommentWithLocation[]} */
+	const comments = [];
 
 	try {
-		const expression = acorn.parseExpressionAt(str, 0, acorn_opts(comments, str)) as unknown as ObjectExpression;
+		const expression = /** @type {any} */ (acorn.parseExpressionAt(str, 0, acorn_opts(comments, str)));
 
 		inject(str, expression, values, comments);
 
@@ -234,7 +292,11 @@ export function p(strings: TemplateStringsArray, ...values: any[]): Property | S
 	}
 }
 
-function handle_error(str: string, err: Error) {
+/**
+ * @param {string} str
+ * @param {Error} err
+ */
+function handle_error(str, err) {
 	// TODO location/code frame
 
 	re.lastIndex = 0;
@@ -250,20 +312,31 @@ function handle_error(str: string, err: Error) {
 	throw err;
 }
 
-export { print } from './print/index';
+export { print } from './print/index.js';
 
-export const parse = (source: string, opts: any): any => {
-	const comments: CommentWithLocation[] = [];
+/**
+ * @param {string} source
+ * @param {any} opts
+ */
+export const parse = (source, opts) => {
+	/** @type {CommentWithLocation[]} */
+	const comments = [];
 	const { onComment, enter, leave } = get_comment_handlers(comments, source);
-	const ast = acorn.parse(source, { onComment, ...opts });
-	walk(ast as any, { enter, leave });
+	const ast = /** @type {any} */ (acorn.parse(source, { onComment, ...opts }));
+	walk(ast, { enter, leave });
 	return ast;
 };
 
-export const parseExpressionAt = (source: string, index: number, opts: any): any => {
-	const comments: CommentWithLocation[] = [];
+/**
+ * @param {string} source
+ * @param {number} index
+ * @param {any} opts
+ */
+export const parseExpressionAt = (source, index, opts) => {
+	/** @type {CommentWithLocation[]} */
+	const comments = [];
 	const { onComment, enter, leave } = get_comment_handlers(comments, source);
-	const ast = acorn.parseExpressionAt(source, index, { onComment, ...opts });
-	walk(ast as any, { enter, leave });
+	const ast = /** @type {any} */ (acorn.parseExpressionAt(source, index, { onComment, ...opts }));
+	walk(ast, { enter, leave });
 	return ast;
 };

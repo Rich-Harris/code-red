@@ -1,4 +1,4 @@
-module.exports = ({ b }) => b`
+export default ({ b }) => b`
 x(a, b, c);
 
 x(a, b, () => {

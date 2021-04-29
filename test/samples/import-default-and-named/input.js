@@ -1,1 +1,1 @@
-module.exports = ({ b }) => b`import a, { b, c as d } from 'x';`;
+export default ({ b }) => b`import a, { b, c as d } from 'x';`;

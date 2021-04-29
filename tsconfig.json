@@ -1,5 +1,10 @@
 {
     "compilerOptions": {
+        "allowJs": true,
+        "checkJs": true,
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "declarationDir": "types",
         "noImplicitAny": true,
         "diagnostics": true,
         "noImplicitThis": true,

@@ -1,36 +1,33 @@
 {
   "name": "code-red",
   "description": "code-red",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "repository": "Rich-Harris/code-red",
-  "main": "dist/code-red.js",
-  "module": "dist/code-red.mjs",
+  "main": "dist/code-red.cjs",
+  "module": "src/index.js",
+  "exports": {
+    "import": "./src/index.js",
+    "require": "./dist/code-red.cjs"
+  },
+  "type": "module",
   "types": "types/index.d.ts",
   "files": [
+    "src",
     "dist",
     "types"
   ],
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^11.1.1",
-    "@rollup/plugin-sucrase": "^3.1.0",
-    "@types/astring": "^1.3.0",
-    "@types/mocha": "^5.2.7",
     "@types/node": "^12.12.7",
+    "esbuild": "^0.11.16",
     "eslump": "^2.0.0",
-    "mocha": "^6.2.2",
-    "rollup": "^2.38.1",
-    "sander": "^0.6.0",
-    "sucrase": "^3.17.0",
-    "tiny-glob": "^0.2.6",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.2",
+    "uvu": "^0.5.1"
   },
   "scripts": {
-    "build-declarations": "tsc -d && node scripts/move-type-declarations.js",
-    "build": "npm run build-declarations && rollup -c",
-    "dev": "rollup -cw",
-    "test": "mocha --opts mocha.opts",
+    "build": "tsc && esbuild --bundle --external:acorn --external:estree-walker --external:is-reference --external:periscopic --external:sourcemap-codec --format=cjs --outfile=dist/code-red.cjs src/index.js",
+    "test": "uvu test test.js",
     "prepublishOnly": "npm test && npm run build",
-    "repl": "node -e \"const { x, b, print } = require('./')\" -i"
+    "repl": "node -e \"const { x, b, print } = require('./dist/code-red.cjs')\" -i"
   },
   "license": "MIT",
   "dependencies": {

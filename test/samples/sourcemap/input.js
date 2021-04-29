@@ -1,10 +1,11 @@
-const acorn = require('acorn');
+import * as acorn from 'acorn';
 
-module.exports = ({ b, x }) => {
+export default ({ b, x }) => {
 	const decl = acorn.parse(`function foo(value) {
 		console.log(value);
 	}`, {
-		locations: true
+		locations: true,
+		ecmaVersion: 2020
 	}).body[0];
 
 

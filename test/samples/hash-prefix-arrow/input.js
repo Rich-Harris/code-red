@@ -1,1 +1,1 @@
-module.exports = ({ b }) => b`const foo = #bar => #bar * 2`;
+export default ({ b }) => b`const foo = #bar => #bar * 2`;

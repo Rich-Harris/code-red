@@ -1,4 +1,4 @@
-module.exports = ({ b }) => b`
+export default ({ b }) => b`
 	// comment before a node
 	// second line
 	console.log(1);
