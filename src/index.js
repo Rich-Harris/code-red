@@ -174,7 +174,13 @@ const inject = (raw, node, values, comments) => {
 			if (node.type === 'Literal') {
 				if (typeof node.value === 'string') {
 					re.lastIndex = 0;
-					node.value = node.value.replace(re, (m, i) => +i in values ? values[+i] : m);
+					const new_value = node.value.replace(re, (m, i) => +i in values ? values[+i] : m);
+					const has_changed = new_value !== node.value;
+					node.value = new_value;
+					if (has_changed && node.raw) {
+						// preserve the quotes
+						node.raw = `${node.raw[0]}${JSON.stringify(node.value).slice(1, -1)}${node.raw[node.raw.length - 1]}`;
+					}
 				}
 			}
 
