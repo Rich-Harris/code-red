@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.2.1
+
+* Fix handling of string literal raw values ([#61](https://github.com/Rich-Harris/code-red/pull/61))
+
 ## 0.2.0
 
 * Rewrite in JavaScript
