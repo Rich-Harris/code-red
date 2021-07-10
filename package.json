@@ -33,9 +33,9 @@
   "dependencies": {
     "@types/estree": "^0.0.45",
     "acorn": "^8.0.5",
-    "estree-walker": "^0.9.0",
-    "is-reference": "^2.0.0",
-    "periscopic": "^2.0.1",
+    "estree-walker": "^3.0.0",
+    "is-reference": "^3.0.0",
+    "periscopic": "^3.0.2",
     "sourcemap-codec": "^1.4.8"
   }
 }
