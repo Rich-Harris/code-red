@@ -23,7 +23,10 @@ const join = (strings) => {
 	for (let i = 1; i < strings.length; i += 1) {
 		str += `_${id}_${i - 1}_${strings[i]}`;
 	}
-	return str.replace(/([@#])(\w+)/g, (_m, sigil, name) => `_${id}_${sigils[sigil]}_${name}`);
+	return str.replace(
+		/([@#])(\w+)/g,
+		(_m, sigil, name) => `_${id}_${sigils[sigil]}_${name}`
+	);
 };
 
 /**
@@ -56,8 +59,10 @@ const flatten_body = (array, target) => {
 				continue;
 			}
 
-			if (statement.leadingComments) statement.expression.leadingComments = statement.leadingComments;
-			if (statement.trailingComments) statement.expression.trailingComments = statement.trailingComments;
+			if (statement.leadingComments)
+				statement.expression.leadingComments = statement.leadingComments;
+			if (statement.trailingComments)
+				statement.expression.trailingComments = statement.trailingComments;
 
 			target.push(statement.expression);
 			continue;
@@ -67,7 +72,7 @@ const flatten_body = (array, target) => {
 	}
 
 	return target;
-}
+};
 
 /**
  * @param {any[]} array
@@ -88,7 +93,7 @@ const flatten_properties = (array, target) => {
 	}
 
 	return target;
-}
+};
 
 /**
  * @param {any[]} nodes
@@ -109,7 +114,7 @@ const flatten = (nodes, target) => {
 	}
 
 	return target;
-}
+};
 
 const EMPTY = { type: 'Empty' };
 
@@ -138,8 +143,10 @@ const acorn_opts = (comments, raw) => {
  * @param {CommentWithLocation[]} comments
  */
 const inject = (raw, node, values, comments) => {
-	comments.forEach(comment => {
-		comment.value = comment.value.replace(re, (m, i) => +i in values ? values[+i] : m);
+	comments.forEach((comment) => {
+		comment.value = comment.value.replace(re, (m, i) =>
+			+i in values ? values[+i] : m
+		);
 	});
 
 	const { enter, leave } = get_comment_handlers(comments, raw);
@@ -147,7 +154,8 @@ const inject = (raw, node, values, comments) => {
 	walk(node, {
 		enter,
 
-		leave(node, parent, key, index) {
+		/** @param {any} node */
+		leave(node) {
 			if (node.type === 'Identifier') {
 				re.lastIndex = 0;
 				const match = re.exec(node.name);
@@ -158,9 +166,19 @@ const inject = (raw, node, values, comments) => {
 							let value = values[+match[1]];
 
 							if (typeof value === 'string') {
-								value = { type: 'Identifier', name: value, leadingComments: node.leadingComments, trailingComments: node.trailingComments };
+								value = {
+									type: 'Identifier',
+									name: value,
+									leadingComments: node.leadingComments,
+									trailingComments: node.trailingComments
+								};
 							} else if (typeof value === 'number') {
-								value = { type: 'Literal', value, leadingComments: node.leadingComments, trailingComments: node.trailingComments };
+								value = {
+									type: 'Literal',
+									value,
+									leadingComments: node.leadingComments,
+									trailingComments: node.trailingComments
+								};
 							}
 
 							this.replace(value || EMPTY);
@@ -174,19 +192,28 @@ const inject = (raw, node, values, comments) => {
 			if (node.type === 'Literal') {
 				if (typeof node.value === 'string') {
 					re.lastIndex = 0;
-					const new_value = node.value.replace(re, (m, i) => +i in values ? values[+i] : m);
+					const new_value = /** @type {string} */ (node.value).replace(
+						re,
+						(m, i) => (+i in values ? values[+i] : m)
+					);
 					const has_changed = new_value !== node.value;
 					node.value = new_value;
 					if (has_changed && node.raw) {
 						// preserve the quotes
-						node.raw = `${node.raw[0]}${JSON.stringify(node.value).slice(1, -1)}${node.raw[node.raw.length - 1]}`;
+						node.raw = `${node.raw[0]}${JSON.stringify(node.value).slice(
+							1,
+							-1
+						)}${node.raw[node.raw.length - 1]}`;
 					}
 				}
 			}
 
 			if (node.type === 'TemplateElement') {
 				re.lastIndex = 0;
-				node.value.raw = node.value.raw.replace(re, (m, i) => +i in values ? values[+i] : m);
+				node.value.raw = /** @type {string} */ (node.value.raw).replace(
+					re,
+					(m, i) => (+i in values ? values[+i] : m)
+				);
 			}
 
 			if (node.type === 'Program' || node.type === 'BlockStatement') {
@@ -201,7 +228,11 @@ const inject = (raw, node, values, comments) => {
 				node.elements = flatten(node.elements, []);
 			}
 
-			if (node.type === 'FunctionExpression' || node.type === 'FunctionDeclaration' || node.type === 'ArrowFunctionExpression') {
+			if (
+				node.type === 'FunctionExpression' ||
+				node.type === 'FunctionDeclaration' ||
+				node.type === 'ArrowFunctionExpression'
+			) {
 				node.params = flatten(node.params, []);
 			}
 
@@ -209,7 +240,10 @@ const inject = (raw, node, values, comments) => {
 				node.arguments = flatten(node.arguments, []);
 			}
 
-			if (node.type === 'ImportDeclaration' || node.type === 'ExportNamedDeclaration') {
+			if (
+				node.type === 'ImportDeclaration' ||
+				node.type === 'ExportNamedDeclaration'
+			) {
 				node.specifiers = flatten(node.specifiers, []);
 			}
 
@@ -223,7 +257,7 @@ const inject = (raw, node, values, comments) => {
 			leave(node);
 		}
 	});
-}
+};
 
 /**
  *
@@ -238,7 +272,9 @@ export function b(strings, ...values) {
 	const comments = [];
 
 	try {
-		const ast = /** @type {any} */ (acorn.parse(str, acorn_opts(comments, str)));
+		const ast = /** @type {any} */ (
+			acorn.parse(str, acorn_opts(comments, str))
+		);
 
 		inject(str, ast, values, comments);
 
@@ -261,7 +297,10 @@ export function x(strings, ...values) {
 	const comments = [];
 
 	try {
-		const expression = /** @type {Expression & { start: Number, end: number }} */ (acorn.parseExpressionAt(str, 0, acorn_opts(comments, str)));
+		const expression =
+			/** @type {Expression & { start: Number, end: number }} */ (
+				acorn.parseExpressionAt(str, 0, acorn_opts(comments, str))
+			);
 		const match = /\S+/.exec(str.slice(expression.end));
 		if (match) {
 			throw new Error(`Unexpected token '${match[0]}'`);
@@ -288,7 +327,9 @@ export function p(strings, ...values) {
 	const comments = [];
 
 	try {
-		const expression = /** @type {any} */ (acorn.parseExpressionAt(str, 0, acorn_opts(comments, str)));
+		const expression = /** @type {any} */ (
+			acorn.parseExpressionAt(str, 0, acorn_opts(comments, str))
+		);
 
 		inject(str, expression, values, comments);
 
@@ -342,7 +383,9 @@ export const parseExpressionAt = (source, index, opts) => {
 	/** @type {CommentWithLocation[]} */
 	const comments = [];
 	const { onComment, enter, leave } = get_comment_handlers(comments, source);
-	const ast = /** @type {any} */ (acorn.parseExpressionAt(source, index, { onComment, ...opts }));
+	const ast = /** @type {any} */ (
+		acorn.parseExpressionAt(source, index, { onComment, ...opts })
+	);
 	walk(ast, { enter, leave });
 	return ast;
 };
