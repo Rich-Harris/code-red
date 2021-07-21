@@ -1,41 +1,41 @@
 {
-  "name": "code-red",
-  "description": "code-red",
-  "version": "0.2.1",
-  "repository": "Rich-Harris/code-red",
-  "main": "dist/code-red.cjs",
-  "module": "src/index.js",
-  "exports": {
-    "import": "./src/index.js",
-    "require": "./dist/code-red.cjs"
-  },
-  "type": "module",
-  "types": "types/index.d.ts",
-  "files": [
-    "src",
-    "dist",
-    "types"
-  ],
-  "devDependencies": {
-    "@types/node": "^12.12.7",
-    "esbuild": "^0.11.16",
-    "eslump": "^2.0.0",
-    "typescript": "^3.7.2",
-    "uvu": "^0.5.1"
-  },
-  "scripts": {
-    "build": "tsc && esbuild --bundle --external:acorn --external:estree-walker --external:is-reference --external:periscopic --external:sourcemap-codec --format=cjs --outfile=dist/code-red.cjs src/index.js",
-    "test": "uvu test test.js",
-    "prepublishOnly": "npm test && npm run build",
-    "repl": "node -e \"const { x, b, print } = require('./dist/code-red.cjs')\" -i"
-  },
-  "license": "MIT",
-  "dependencies": {
-    "@types/estree": "^0.0.50",
-    "acorn": "^8.0.5",
-    "estree-walker": "^3.0.0",
-    "is-reference": "^3.0.0",
-    "periscopic": "^3.0.4",
-    "sourcemap-codec": "^1.4.8"
-  }
+	"name": "code-red",
+	"description": "code-red",
+	"version": "0.2.2",
+	"repository": "Rich-Harris/code-red",
+	"main": "dist/code-red.cjs",
+	"module": "src/index.js",
+	"exports": {
+		"import": "./src/index.js",
+		"require": "./dist/code-red.cjs"
+	},
+	"type": "module",
+	"types": "types/index.d.ts",
+	"files": [
+		"src",
+		"dist",
+		"types"
+	],
+	"devDependencies": {
+		"@types/node": "^12.12.7",
+		"esbuild": "^0.11.16",
+		"eslump": "^2.0.0",
+		"typescript": "^3.7.2",
+		"uvu": "^0.5.1"
+	},
+	"scripts": {
+		"build": "tsc && esbuild --bundle --external:acorn --external:estree-walker --external:is-reference --external:periscopic --external:sourcemap-codec --format=cjs --outfile=dist/code-red.cjs src/index.js",
+		"test": "uvu test test.js",
+		"prepublishOnly": "npm test && npm run build",
+		"repl": "node -e \"const { x, b, print } = require('./dist/code-red.cjs')\" -i"
+	},
+	"license": "MIT",
+	"dependencies": {
+		"@types/estree": "^0.0.50",
+		"acorn": "^8.0.5",
+		"estree-walker": "^3.0.0",
+		"is-reference": "^3.0.0",
+		"periscopic": "^3.0.4",
+		"sourcemap-codec": "^1.4.8"
+	}
 }
