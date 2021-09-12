@@ -1,17 +1,4 @@
-// TODO move pushArray to npm module
-function pushArray(thisArray,  ...otherList) {
-  let count = 0;
-  for (let a = 0; a < otherList.length; a++) {
-    const other = otherList[a];
-    for (let i = 0; i < other.length; i++) {
-      thisArray.push(other[i]);
-    }
-    count += other.length;
-  }
-  return count;
-};
-
-
+import { push_array } from '../utils/push_array';
 // heavily based on https://github.com/davidbonnet/astring
 // released under MIT license https://github.com/davidbonnet/astring/blob/master/LICENSE
 
@@ -262,7 +249,7 @@ const join = (nodes, separator) => {
 
 	const joined = [...nodes[0]];
 	for (let i = 1; i < nodes.length; i += 1) {
-		pushArray(joined, [separator], nodes[i]);
+		push_array(joined, [separator], nodes[i]);
 	}
 	return joined;
 };
@@ -340,7 +327,7 @@ const handle_body = (nodes, state) => {
 			);
 		}
 
-		pushArray(chunks,
+		push_array(chunks,
 			body[i]
 		);
 
@@ -370,9 +357,9 @@ const handle_var_declaration = (node, state) => {
 	const separator = c(multiple_lines ? `,\n${state.indent}\t` : ', ');
 
 	if (multiple_lines) {
-		pushArray(chunks, join(declarators, separator));
+		push_array(chunks, join(declarators, separator));
 	} else {
-		pushArray(chunks,
+		push_array(chunks,
 			join(declarators, separator)
 		);
 	}
@@ -430,7 +417,7 @@ const handlers = {
 		];
 
 		if (node.alternate) {
-			pushArray(chunks,
+			push_array(chunks,
 				[c(' else ')],
 				handle(node.alternate, state)
 			);
@@ -477,7 +464,7 @@ const handlers = {
 
 		node.cases.forEach(block => {
 			if (block.test) {
-				pushArray(chunks,
+				push_array(chunks,
 					[c(`\n${state.indent}\tcase `)],
 					handle(block.test, { ...state, indent: `${state.indent}\t` }),
 					[c(':')]
@@ -487,7 +474,7 @@ const handlers = {
 			}
 
 			block.consequent.forEach(statement => {
-				pushArray(chunks,
+				push_array(chunks,
 					[c(`\n${state.indent}\t\t`)],
 					handle(statement, { ...state, indent: `${state.indent}\t\t` })
 				);
@@ -527,7 +514,7 @@ const handlers = {
 
 		if (node.handler) {
 			if (node.handler.param) {
-				pushArray(chunks,
+				push_array(chunks,
 					[c(' catch(')],
 					handle(node.handler.param, state),
 					[c(') ')]
@@ -536,11 +523,11 @@ const handlers = {
 				chunks.push(c(' catch '));
 			}
 
-			pushArray(chunks, handle(node.handler.body, state));
+			push_array(chunks, handle(node.handler.body, state));
 		}
 
 		if (node.finalizer) {
-			pushArray(chunks, [c(' finally ')], handle(node.finalizer, state));
+			push_array(chunks, [c(' finally ')], handle(node.finalizer, state));
 		}
 
 		return chunks;
@@ -570,18 +557,18 @@ const handlers = {
 
 		if (node.init) {
 			if (node.init.type === 'VariableDeclaration') {
-				pushArray(chunks, handle_var_declaration(node.init, state));
+				push_array(chunks, handle_var_declaration(node.init, state));
 			} else {
-				pushArray(chunks, handle(node.init, state));
+				push_array(chunks, handle(node.init, state));
 			}
 		}
 
 		chunks.push(c('; '));
-		if (node.test) pushArray(chunks, handle(node.test, state));
+		if (node.test) push_array(chunks, handle(node.test, state));
 		chunks.push(c('; '));
-		if (node.update) pushArray(chunks, handle(node.update, state));
+		if (node.update) push_array(chunks, handle(node.update, state));
 
-		pushArray(chunks,
+		push_array(chunks,
 			[c(') ')],
 			handle(node.body, state)
 		);
@@ -595,12 +582,12 @@ const handlers = {
 		];
 
 		if (node.left.type === 'VariableDeclaration') {
-			pushArray(chunks, handle_var_declaration(node.left, state));
+			push_array(chunks, handle_var_declaration(node.left, state));
 		} else {
-			pushArray(chunks, handle(node.left, state));
+			push_array(chunks, handle(node.left, state));
 		}
 
-		pushArray(chunks,
+		push_array(chunks,
 			[c(node.type === 'ForInStatement' ? ` in ` : ` of `)],
 			handle(node.right, state),
 			[c(') ')],
@@ -619,7 +606,7 @@ const handlers = {
 
 		if (node.async) chunks.push(c('async '));
 		chunks.push(c(node.generator ? 'function* ' : 'function '));
-		if (node.id) pushArray(chunks, handle(node.id, state));
+		if (node.id) push_array(chunks, handle(node.id, state));
 		chunks.push(c('('));
 
 		const params = node.params.map(p => handle(p, {
@@ -635,18 +622,18 @@ const handlers = {
 		const separator = c(multiple_lines ? `,\n${state.indent}` : ', ');
 
 		if (multiple_lines) {
-			pushArray(chunks,
+			push_array(chunks,
 				[c(`\n${state.indent}\t`)],
 				join(params, separator),
 				[c(`\n${state.indent}`)]
 			);
 		} else {
-			pushArray(chunks,
+			push_array(chunks,
 				join(params, separator)
 			);
 		}
 
-		pushArray(chunks,
+		push_array(chunks,
 			[c(') ')],
 			handle(node.body, state)
 		);
@@ -673,17 +660,17 @@ const handlers = {
 	ClassDeclaration(node, state) {
 		const chunks = [c('class ')];
 
-		if (node.id) pushArray(chunks, handle(node.id, state), [c(' ')]);
+		if (node.id) push_array(chunks, handle(node.id, state), [c(' ')]);
 
 		if (node.superClass) {
-			pushArray(chunks,
+			push_array(chunks,
 				[c('extends ')],
 				handle(node.superClass, state),
 				[c(' ')]
 			);
 		}
 
-		pushArray(chunks, handle(node.body, state));
+		push_array(chunks, handle(node.body, state));
 
 		return chunks;
 	},
@@ -731,13 +718,13 @@ const handlers = {
 				const width = get_length(chunks) + specifiers.map(get_length).reduce(sum, 0) + (2 * specifiers.length) + 6 + get_length(source);
 
 				if (width > 80) {
-					pushArray(chunks,
+					push_array(chunks,
 						[c(`{\n\t`)],
 						join(specifiers, c(',\n\t')),
 						[c('\n}')]
 					);
 				} else {
-					pushArray(chunks,
+					push_array(chunks,
 						[c(`{ `)],
 						join(specifiers, c(', ')),
 						[c(' }')]
@@ -748,7 +735,7 @@ const handlers = {
 			chunks.push(c(' from '));
 		}
 
-		pushArray(chunks,
+		push_array(chunks,
 			source,
 			[c(';')]
 		);
@@ -777,7 +764,7 @@ const handlers = {
 		const chunks = [c('export ')];
 
 		if (node.declaration) {
-			pushArray(chunks, handle(node.declaration, state));
+			push_array(chunks, handle(node.declaration, state));
 		} else {
 			const specifiers = node.specifiers.map((/** @type {ExportSpecifier} */ specifier) => {
 				const name = handle(specifier.local, state)[0];
@@ -793,13 +780,13 @@ const handlers = {
 			const width = 7 + specifiers.map(get_length).reduce(sum, 0) + 2 * specifiers.length;
 
 			if (width > 80) {
-				pushArray(chunks,
+				push_array(chunks,
 					[c('{\n\t')],
 					join(specifiers, c(',\n\t')),
 					[c('\n}')]
 				);
 			} else {
-				pushArray(chunks,
+				push_array(chunks,
 					[c('{ ')],
 					join(specifiers, c(', ')),
 					[c(' }')]
@@ -807,7 +794,7 @@ const handlers = {
 			}
 
 			if (node.source) {
-				pushArray(chunks,
+				push_array(chunks,
 					[c(' from ')],
 					handle(node.source, state)
 				);
@@ -848,24 +835,24 @@ const handlers = {
 		}
 
 		if (node.computed) {
-			pushArray(chunks,
+			push_array(chunks,
 				[c('[')],
 				handle(node.key, state),
 				[c(']')]
 			);
 		} else {
-			pushArray(chunks, handle(node.key, state));
+			push_array(chunks, handle(node.key, state));
 		}
 
 		chunks.push(c('('));
 
 		const { params } = node.value;
 		for (let i = 0; i < params.length; i += 1) {
-			pushArray(chunks, handle(params[i], state));
+			push_array(chunks, handle(params[i], state));
 			if (i < params.length - 1) chunks.push(c(', '));
 		}
 
-		pushArray(chunks,
+		push_array(chunks,
 			[c(') ')],
 			handle(node.value.body, state)
 		);
@@ -879,14 +866,14 @@ const handlers = {
 		if (node.async) chunks.push(c('async '));
 
 		if (node.params.length === 1 && node.params[0].type === 'Identifier') {
-			pushArray(chunks, handle(node.params[0], state));
+			push_array(chunks, handle(node.params[0], state));
 		} else {
 			const params = node.params.map(param => handle(param, {
 				...state,
 				indent: state.indent + '\t'
 			}));
 
-			pushArray(chunks,
+			push_array(chunks,
 				[c('(')],
 				join(params, c(', ')),
 				[c(')')]
@@ -896,13 +883,13 @@ const handlers = {
 		chunks.push(c(' => '));
 
 		if (node.body.type === 'ObjectExpression') {
-			pushArray(chunks,
+			push_array(chunks,
 				[c('(')],
 				handle(node.body, state),
 				[c(')')]
 			);
 		} else {
-			pushArray(chunks, handle(node.body, state));
+			push_array(chunks, handle(node.body, state));
 		}
 
 		return chunks;
@@ -948,7 +935,7 @@ const handlers = {
 		const { quasis, expressions } = node;
 
 		for (let i = 0; i < expressions.length; i++) {
-			pushArray(chunks,
+			push_array(chunks,
 				[c(quasis[i].value.raw)],
 				[c('${')],
 				handle(expressions[i], state),
@@ -997,14 +984,14 @@ const handlers = {
 		);
 
 		if (multiple_lines) {
-			pushArray(chunks,
+			push_array(chunks,
 				[c(`\n${state.indent}\t`)],
 				join(elements, c(`,\n${state.indent}\t`)),
 				[c(`\n${state.indent}`)],
 				sparse_commas
 			);
 		} else {
-			pushArray(chunks, join(elements, c(', ')), sparse_commas);
+			push_array(chunks, join(elements, c(', ')), sparse_commas);
 		}
 
 		chunks.push(c(']'));
@@ -1024,7 +1011,7 @@ const handlers = {
 		const separator = c(', ');
 
 		node.properties.forEach((p, i) => {
-			pushArray(chunks, handle(p, {
+			push_array(chunks, handle(p, {
 				...state,
 				indent: state.indent + '\t'
 			}));
@@ -1112,7 +1099,7 @@ const handlers = {
 				chunks.push(c('*'));
 			}
 
-			pushArray(chunks,
+			push_array(chunks,
 				node.computed ? [c('['), ...key, c(']')] : key,
 				[c('(')],
 				join(node.value.params.map((/** @type {Pattern} */ param) => handle(param, state)), c(', ')),
@@ -1143,7 +1130,7 @@ const handlers = {
 		const chunks = [c('{ ')];
 
 		for (let i = 0; i < node.properties.length; i += 1) {
-			pushArray(chunks, handle(node.properties[i], state));
+			push_array(chunks, handle(node.properties[i], state));
 			if (i < node.properties.length - 1) chunks.push(c(', '));
 		}
 
@@ -1173,13 +1160,13 @@ const handlers = {
 			EXPRESSIONS_PRECEDENCE[node.argument.type] <
 			EXPRESSIONS_PRECEDENCE.UnaryExpression
 		) {
-			pushArray(chunks,
+			push_array(chunks,
 				[c('(')],
 				handle(node.argument, state),
 				[c(')')]
 			);
 		} else {
-			pushArray(chunks, handle(node.argument, state));
+			push_array(chunks, handle(node.argument, state));
 		}
 
 		return chunks;
@@ -1210,25 +1197,25 @@ const handlers = {
 		// }
 
 		if (needs_parens(node.left, node, false)) {
-			pushArray(chunks,
+			push_array(chunks,
 				[c('(')],
 				handle(node.left, state),
 				[c(')')]
 			);
 		} else {
-			pushArray(chunks, handle(node.left, state));
+			push_array(chunks, handle(node.left, state));
 		}
 
 		chunks.push(c(` ${node.operator} `));
 
 		if (needs_parens(node.right, node, true)) {
-			pushArray(chunks,
+			push_array(chunks,
 				[c('(')],
 				handle(node.right, state),
 				[c(')')]
 			);
 		} else {
-			pushArray(chunks, handle(node.right, state));
+			push_array(chunks, handle(node.right, state));
 		}
 
 		return chunks;
@@ -1241,9 +1228,9 @@ const handlers = {
 			EXPRESSIONS_PRECEDENCE[node.test.type] >
 			EXPRESSIONS_PRECEDENCE.ConditionalExpression
 		) {
-			pushArray(chunks, handle(node.test, state));
+			push_array(chunks, handle(node.test, state));
 		} else {
-			pushArray(chunks,
+			push_array(chunks,
 				[c('(')],
 				handle(node.test, state),
 				[c(')')]
@@ -1261,14 +1248,14 @@ const handlers = {
 		);
 
 		if (multiple_lines) {
-			pushArray(chunks,
+			push_array(chunks,
 				[c(`\n${state.indent}? `)],
 				consequent,
 				[c(`\n${state.indent}: `)],
 				alternate
 			);
 		} else {
-			pushArray(chunks,
+			push_array(chunks,
 				[c(` ? `)],
 				consequent,
 				[c(` : `)],
@@ -1286,13 +1273,13 @@ const handlers = {
 			EXPRESSIONS_PRECEDENCE[node.callee.type] <
 			EXPRESSIONS_PRECEDENCE.CallExpression || has_call_expression(node.callee)
 		) {
-			pushArray(chunks,
+			push_array(chunks,
 				[c('(')],
 				handle(node.callee, state),
 				[c(')')]
 			)
 		} else {
-			pushArray(chunks, handle(node.callee, state));
+			push_array(chunks, handle(node.callee, state));
 		}
 
 		// TODO this is copied from CallExpression — DRY it out
@@ -1305,7 +1292,7 @@ const handlers = {
 			? c(',\n' + state.indent)
 			: c(', ');
 
-		pushArray(chunks,
+		push_array(chunks,
 			[c('(')],
 			join(args, separator),
 			[c(')')]
@@ -1325,13 +1312,13 @@ const handlers = {
 			EXPRESSIONS_PRECEDENCE[node.callee.type] <
 			EXPRESSIONS_PRECEDENCE.CallExpression
 		) {
-			pushArray(chunks,
+			push_array(chunks,
 				[c('(')],
 				handle(node.callee, state),
 				[c(')')]
 			);
 		} else {
-			pushArray(chunks, handle(node.callee, state));
+			push_array(chunks, handle(node.callee, state));
 		}
 
 		if (/** @type {SimpleCallExpression} */ (node).optional) {
@@ -1349,13 +1336,13 @@ const handlers = {
 				indent: `${state.indent}\t`
 			}));
 
-			pushArray(chunks,
+			push_array(chunks,
 				[c(`(\n${state.indent}\t`)],
 				join(args, c(`,\n${state.indent}\t`)),
 				[c(`\n${state.indent})`)]
 			);
 		} else {
-			pushArray(chunks,
+			push_array(chunks,
 				[c('(')],
 				join(args, c(', ')),
 				[c(')')]
@@ -1369,26 +1356,26 @@ const handlers = {
 		const chunks = [];
 
 		if (EXPRESSIONS_PRECEDENCE[node.object.type] < EXPRESSIONS_PRECEDENCE.MemberExpression) {
-			pushArray(chunks,
+			push_array(chunks,
 				[c('(')],
 				handle(node.object, state),
 				[c(')')]
 			);
 		} else {
-			pushArray(chunks, handle(node.object, state));
+			push_array(chunks, handle(node.object, state));
 		}
 
 		if (node.computed) {
 			if (node.optional) {
 				chunks.push(c('?.'));
 			}
-			pushArray(chunks,
+			push_array(chunks,
 				[c('[')],
 				handle(node.property, state),
 				[c(']')]
 			);
 		} else {
-			pushArray(chunks,
+			push_array(chunks,
 				[c(node.optional ? '?.' : '.')],
 				handle(node.property, state)
 			);
