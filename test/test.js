@@ -296,6 +296,16 @@ suite('x', test => {
 		});
 	});
 
+	test(`replaces identifier with no parent`, () => {
+		const answer = { type: 'Identifier', name: 'value' };
+		const expression = x`${answer}`;
+
+		assert.deepEqual(expression, {
+			type: 'Identifier',
+			name: 'value'
+		});
+	});
+
 	test(`replaces strings in template literals`, () => {
 		const foo = 'bar';
 		const expression = x`\`${foo}\``;

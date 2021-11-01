@@ -151,7 +151,7 @@ const inject = (raw, node, values, comments) => {
 
 	const { enter, leave } = get_comment_handlers(comments, raw);
 
-	walk(node, {
+	return walk(node, {
 		enter,
 
 		/** @param {any} node */
@@ -272,11 +272,11 @@ export function b(strings, ...values) {
 	const comments = [];
 
 	try {
-		const ast = /** @type {any} */ (
+		let ast = /** @type {any} */ (
 			acorn.parse(str, acorn_opts(comments, str))
 		);
 
-		inject(str, ast, values, comments);
+		ast = inject(str, ast, values, comments);
 
 		return ast.body;
 	} catch (err) {
@@ -297,7 +297,7 @@ export function x(strings, ...values) {
 	const comments = [];
 
 	try {
-		const expression =
+		let expression =
 			/** @type {Expression & { start: Number, end: number }} */ (
 				acorn.parseExpressionAt(str, 0, acorn_opts(comments, str))
 			);
@@ -306,7 +306,7 @@ export function x(strings, ...values) {
 			throw new Error(`Unexpected token '${match[0]}'`);
 		}
 
-		inject(str, expression, values, comments);
+		expression = inject(str, expression, values, comments);
 
 		return expression;
 	} catch (err) {
@@ -327,11 +327,11 @@ export function p(strings, ...values) {
 	const comments = [];
 
 	try {
-		const expression = /** @type {any} */ (
+		let expression = /** @type {any} */ (
 			acorn.parseExpressionAt(str, 0, acorn_opts(comments, str))
 		);
 
-		inject(str, expression, values, comments);
+		expression = inject(str, expression, values, comments);
 
 		return expression.properties[0];
 	} catch (err) {
