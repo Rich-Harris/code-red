@@ -487,20 +487,12 @@ const handlers = {
 
 	ReturnStatement(node, state) {
 		if (node.argument) {
-			const args = handle(node.argument, state);
-			if (node.argument.leadingComments && node.argument.leadingComments.some(comment => comment.has_trailing_newline)) {
-				return [
-					c('return ('),
-					...args,
-					c(');')
-				];
-			} else {
-				return [
-					c('return '),
-					...args,
-					c(';')
-				];
-			}
+			const contains_comment = node.argument.leadingComments && node.argument.leadingComments.some(comment => comment.has_trailing_newline);
+			return [
+				c(contains_comment ? 'return (' : 'return '),
+				...handle(node.argument, state),
+				c(contains_comment ? ');' : ';')
+			];
 		} else {
 			return [c('return;')];
 		}
