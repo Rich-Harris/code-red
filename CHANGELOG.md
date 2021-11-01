@@ -1,5 +1,11 @@
 # code-red changelog
 
+## 0.2.3
+
+- Fix output with comments within parenthesized `return` statement ([#36](https://github.com/Rich-Harris/code-red/issues/36))
+- Fix output for identifier at root of AST ([#37](https://github.com/Rich-Harris/code-red/issues/37))
+- Fix output for statements with empty bodies ([#65](https://github.com/Rich-Harris/code-red/issues/65))
+
 ## 0.2.2
 
 - Update dependencies ([#63](https://github.com/Rich-Harris/code-red/pull/63))

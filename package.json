@@ -1,7 +1,7 @@
 {
 	"name": "code-red",
 	"description": "code-red",
-	"version": "0.2.2",
+	"version": "0.2.3",
 	"repository": "Rich-Harris/code-red",
 	"main": "dist/code-red.cjs",
 	"module": "src/index.js",
