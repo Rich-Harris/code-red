@@ -381,7 +381,7 @@ const handlers = {
 	}),
 
 	EmptyStatement(node, state) {
-		return [];
+		return [c(';')];
 	},
 
 	ParenthesizedExpression(node, state) {
