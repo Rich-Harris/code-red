@@ -253,7 +253,6 @@ const inject = (raw, node, values, comments) => {
 				node.update = node.update === EMPTY ? null : node.update;
 			}
 
-			// @ts-ignore
 			leave(node);
 		}
 	});
@@ -306,7 +305,9 @@ export function x(strings, ...values) {
 			throw new Error(`Unexpected token '${match[0]}'`);
 		}
 
-		expression = inject(str, expression, values, comments);
+		expression = /** @type {Expression & { start: Number, end: number }} */ (
+			inject(str, expression, values, comments)
+		);
 
 		return expression;
 	} catch (err) {
