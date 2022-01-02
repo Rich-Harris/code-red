@@ -882,7 +882,7 @@ const handlers = {
 
 		chunks.push(c(' => '));
 
-		if (node.body.type === 'ObjectExpression') {
+		if (node.body.type === 'ObjectExpression'  || node.body.type === 'AssignmentExpression') {
 			chunks.push(
 				c('('),
 				...handle(node.body, state),
