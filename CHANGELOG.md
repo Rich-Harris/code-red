@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.2.4
+
+- Fix output for arrow functions where body is an object destructuring assignment ([#70](https://github.com/Rich-Harris/code-red/pull/70))
+
 ## 0.2.3
 
 - Fix output with comments within parenthesized `return` statement ([#36](https://github.com/Rich-Harris/code-red/issues/36))
