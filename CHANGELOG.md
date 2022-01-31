@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.2.5
+
+- Prevent stack overflow with very large ASTs ([#71](https://github.com/Rich-Harris/code-red/pull/71))
+
 ## 0.2.4
 
 - Fix output for arrow functions where body is an object destructuring assignment ([#70](https://github.com/Rich-Harris/code-red/pull/70))
