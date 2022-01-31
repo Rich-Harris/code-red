@@ -355,11 +355,7 @@ const handle_var_declaration = (node, state) => {
 
 	const separator = c(multiple_lines ? `,\n${state.indent}\t` : ', ');
 
-	if (multiple_lines) {
-		push_array(chunks, join(declarators, separator));
-	} else {
-		push_array(chunks, join(declarators, separator));
-	}
+	push_array(chunks, join(declarators, separator));
 
 	return chunks;
 };
