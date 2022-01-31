@@ -2,6 +2,7 @@
 // released under MIT license https://github.com/davidbonnet/astring/blob/master/LICENSE
 
 import { re } from '../utils/id.js';
+import { push_array } from '../utils/push_array.js';
 
 /** @typedef {import('estree').ArrowFunctionExpression} ArrowFunctionExpression */
 /** @typedef {import('estree').BinaryExpression} BinaryExpression */
@@ -248,7 +249,8 @@ const join = (nodes, separator) => {
 
 	const joined = [...nodes[0]];
 	for (let i = 1; i < nodes.length; i += 1) {
-		joined.push(separator, ...nodes[i]);
+		joined.push(separator);
+		push_array(joined, nodes[i]);
 	}
 	return joined;
 };
@@ -326,9 +328,7 @@ const handle_body = (nodes, state) => {
 			);
 		}
 
-		chunks.push(
-			...body[i]
-		);
+		push_array(chunks, body[i]);
 
 		needed_padding = needs_padding;
 	}
@@ -355,13 +355,7 @@ const handle_var_declaration = (node, state) => {
 
 	const separator = c(multiple_lines ? `,\n${state.indent}\t` : ', ');
 
-	if (multiple_lines) {
-		chunks.push(...join(declarators, separator));
-	} else {
-		chunks.push(
-			...join(declarators, separator)
-		);
-	}
+	push_array(chunks, join(declarators, separator));
 
 	return chunks;
 };
@@ -416,10 +410,8 @@ const handlers = {
 		];
 
 		if (node.alternate) {
-			chunks.push(
-				c(' else '),
-				...handle(node.alternate, state)
-			);
+			chunks.push(c(' else '));
+			push_array(chunks, handle(node.alternate, state));
 		}
 
 		return chunks;
@@ -463,20 +455,16 @@ const handlers = {
 
 		node.cases.forEach(block => {
 			if (block.test) {
-				chunks.push(
-					c(`\n${state.indent}\tcase `),
-					...handle(block.test, { ...state, indent: `${state.indent}\t` }),
-					c(':')
-				);
+				chunks.push(c(`\n${state.indent}\tcase `));
+				push_array(chunks, handle(block.test, { ...state, indent: `${state.indent}\t` }));
+				chunks.push(c(':'));
 			} else {
 				chunks.push(c(`\n${state.indent}\tdefault:`))
 			}
 
 			block.consequent.forEach(statement => {
-				chunks.push(
-					c(`\n${state.indent}\t\t`),
-					...handle(statement, { ...state, indent: `${state.indent}\t\t` })
-				);
+				chunks.push(c(`\n${state.indent}\t\t`));
+				push_array(chunks, handle(statement, { ...state, indent: `${state.indent}\t\t` }));
 			});
 		});
 
@@ -514,20 +502,19 @@ const handlers = {
 
 		if (node.handler) {
 			if (node.handler.param) {
-				chunks.push(
-					c(' catch('),
-					...handle(node.handler.param, state),
-					c(') ')
-				);
+				chunks.push(c(' catch('));
+				push_array(chunks, handle(node.handler.param, state));
+				chunks.push(c(') '));
 			} else {
 				chunks.push(c(' catch '));
 			}
 
-			chunks.push(...handle(node.handler.body, state));
+			push_array(chunks, handle(node.handler.body, state));
 		}
 
 		if (node.finalizer) {
-			chunks.push(c(' finally '), ...handle(node.finalizer, state));
+			chunks.push(c(' finally '));
+			push_array(chunks, handle(node.finalizer, state));
 		}
 
 		return chunks;
@@ -557,21 +544,19 @@ const handlers = {
 
 		if (node.init) {
 			if (node.init.type === 'VariableDeclaration') {
-				chunks.push(...handle_var_declaration(node.init, state));
+				push_array(chunks, handle_var_declaration(node.init, state));
 			} else {
-				chunks.push(...handle(node.init, state));
+				push_array(chunks, handle(node.init, state));
 			}
 		}
 
 		chunks.push(c('; '));
-		if (node.test) chunks.push(...handle(node.test, state));
+		if (node.test) push_array(chunks, handle(node.test, state));
 		chunks.push(c('; '));
-		if (node.update) chunks.push(...handle(node.update, state));
+		if (node.update) push_array(chunks, handle(node.update, state));
 
-		chunks.push(
-			c(') '),
-			...handle(node.body, state)
-		);
+		chunks.push(c(') '));
+		push_array(chunks, handle(node.body, state));
 
 		return chunks;
 	}),
@@ -582,17 +567,15 @@ const handlers = {
 		];
 
 		if (node.left.type === 'VariableDeclaration') {
-			chunks.push(...handle_var_declaration(node.left, state));
+			push_array(chunks, handle_var_declaration(node.left, state));
 		} else {
-			chunks.push(...handle(node.left, state));
+			push_array(chunks, handle(node.left, state));
 		}
 
-		chunks.push(
-			c(node.type === 'ForInStatement' ? ` in ` : ` of `),
-			...handle(node.right, state),
-			c(') '),
-			...handle(node.body, state)
-		);
+		chunks.push(c(node.type === 'ForInStatement' ? ` in ` : ` of `));
+		push_array(chunks, handle(node.right, state));
+		chunks.push(c(') '));
+		push_array(chunks, handle(node.body, state));
 
 		return chunks;
 	}),
@@ -606,7 +589,7 @@ const handlers = {
 
 		if (node.async) chunks.push(c('async '));
 		chunks.push(c(node.generator ? 'function* ' : 'function '));
-		if (node.id) chunks.push(...handle(node.id, state));
+		if (node.id) push_array(chunks, handle(node.id, state));
 		chunks.push(c('('));
 
 		const params = node.params.map(p => handle(p, {
@@ -622,21 +605,15 @@ const handlers = {
 		const separator = c(multiple_lines ? `,\n${state.indent}` : ', ');
 
 		if (multiple_lines) {
-			chunks.push(
-				c(`\n${state.indent}\t`),
-				...join(params, separator),
-				c(`\n${state.indent}`)
-			);
+			chunks.push(c(`\n${state.indent}\t`));
+			push_array(chunks, join(params, separator));
+			chunks.push(c(`\n${state.indent}`));
 		} else {
-			chunks.push(
-				...join(params, separator)
-			);
+			push_array(chunks, join(params, separator));
 		}
 
-		chunks.push(
-			c(') '),
-			...handle(node.body, state)
-		);
+		chunks.push(c(') '));
+		push_array(chunks, handle(node.body, state));
 
 		return chunks;
 	}),
@@ -660,17 +637,18 @@ const handlers = {
 	ClassDeclaration(node, state) {
 		const chunks = [c('class ')];
 
-		if (node.id) chunks.push(...handle(node.id, state), c(' '));
-
-		if (node.superClass) {
-			chunks.push(
-				c('extends '),
-				...handle(node.superClass, state),
-				c(' ')
-			);
+		if (node.id) {
+			push_array(chunks, handle(node.id, state));
+			chunks.push(c(' '));
 		}
 
-		chunks.push(...handle(node.body, state));
+		if (node.superClass) {
+			chunks.push(c('extends '));
+			push_array(chunks, handle(node.superClass, state));
+			chunks.push(c(' '));
+		}
+
+		push_array(chunks, handle(node.body, state));
 
 		return chunks;
 	},
@@ -718,27 +696,21 @@ const handlers = {
 				const width = get_length(chunks) + specifiers.map(get_length).reduce(sum, 0) + (2 * specifiers.length) + 6 + get_length(source);
 
 				if (width > 80) {
-					chunks.push(
-						c(`{\n\t`),
-						...join(specifiers, c(',\n\t')),
-						c('\n}')
-					);
+					chunks.push(c(`{\n\t`));
+					push_array(chunks, join(specifiers, c(',\n\t')));
+					chunks.push(c('\n}'));
 				} else {
-					chunks.push(
-						c(`{ `),
-						...join(specifiers, c(', ')),
-						c(' }')
-					);
+					chunks.push(c(`{ `));
+					push_array(chunks, join(specifiers, c(', ')));
+					chunks.push(c(' }'));
 				}
 			}
 
 			chunks.push(c(' from '));
 		}
 
-		chunks.push(
-			...source,
-			c(';')
-		);
+		push_array(chunks, source);
+		chunks.push(c(';'));
 
 		return chunks;
 	},
@@ -764,7 +736,7 @@ const handlers = {
 		const chunks = [c('export ')];
 
 		if (node.declaration) {
-			chunks.push(...handle(node.declaration, state));
+			push_array(chunks, handle(node.declaration, state));
 		} else {
 			const specifiers = node.specifiers.map((/** @type {ExportSpecifier} */ specifier) => {
 				const name = handle(specifier.local, state)[0];
@@ -780,24 +752,18 @@ const handlers = {
 			const width = 7 + specifiers.map(get_length).reduce(sum, 0) + 2 * specifiers.length;
 
 			if (width > 80) {
-				chunks.push(
-					c('{\n\t'),
-					...join(specifiers, c(',\n\t')),
-					c('\n}')
-				);
+				chunks.push(c('{\n\t'));
+				push_array(chunks, join(specifiers, c(',\n\t')));
+				chunks.push(c('\n}'));
 			} else {
-				chunks.push(
-					c('{ '),
-					...join(specifiers, c(', ')),
-					c(' }')
-				);
+				chunks.push(c('{ '));
+				push_array(chunks, join(specifiers, c(', ')));
+				chunks.push(c(' }'));
 			}
 
 			if (node.source) {
-				chunks.push(
-					c(' from '),
-					...handle(node.source, state)
-				);
+				chunks.push(c(' from '));
+				push_array(chunks, handle(node.source, state));
 			}
 		}
 
@@ -835,27 +801,23 @@ const handlers = {
 		}
 
 		if (node.computed) {
-			chunks.push(
-				c('['),
-				...handle(node.key, state),
-				c(']')
-			);
+			chunks.push(c('['));
+			push_array(chunks, handle(node.key, state));
+			chunks.push(c(']'));
 		} else {
-			chunks.push(...handle(node.key, state));
+			push_array(chunks, handle(node.key, state));
 		}
 
 		chunks.push(c('('));
 
 		const { params } = node.value;
 		for (let i = 0; i < params.length; i += 1) {
-			chunks.push(...handle(params[i], state));
+			push_array(chunks, handle(params[i], state));
 			if (i < params.length - 1) chunks.push(c(', '));
 		}
 
-		chunks.push(
-			c(') '),
-			...handle(node.value.body, state)
-		);
+		chunks.push(c(') '));
+		push_array(chunks, handle(node.value.body, state));
 
 		return chunks;
 	},
@@ -866,18 +828,16 @@ const handlers = {
 		if (node.async) chunks.push(c('async '));
 
 		if (node.params.length === 1 && node.params[0].type === 'Identifier') {
-			chunks.push(...handle(node.params[0], state));
+			push_array(chunks, handle(node.params[0], state));
 		} else {
 			const params = node.params.map(param => handle(param, {
 				...state,
 				indent: state.indent + '\t'
 			}));
 
-			chunks.push(
-				c('('),
-				...join(params, c(', ')),
-				c(')')
-			);
+			chunks.push(c('('));
+			push_array(chunks, join(params, c(', ')));
+			chunks.push(c(')'));
 		}
 
 		chunks.push(c(' => '));
@@ -886,13 +846,11 @@ const handlers = {
 			node.body.type === 'ObjectExpression' ||
 			(node.body.type === 'AssignmentExpression' && node.body.left.type === 'ObjectPattern')
 		) {
-			chunks.push(
-				c('('),
-				...handle(node.body, state),
-				c(')')
-			);
+			chunks.push(c('('));
+			push_array(chunks, handle(node.body, state));
+			chunks.push(c(')'));
 		} else {
-			chunks.push(...handle(node.body, state));
+			push_array(chunks, handle(node.body, state));
 		}
 
 		return chunks;
@@ -940,10 +898,10 @@ const handlers = {
 		for (let i = 0; i < expressions.length; i++) {
 			chunks.push(
 				c(quasis[i].value.raw),
-				c('${'),
-				...handle(expressions[i], state),
-				c('}')
+				c('${')
 			);
+			push_array(chunks, handle(expressions[i], state));
+			chunks.push(c('}'));
 		}
 
 		chunks.push(
@@ -987,14 +945,13 @@ const handlers = {
 		);
 
 		if (multiple_lines) {
-			chunks.push(
-				c(`\n${state.indent}\t`),
-				...join(elements, c(`,\n${state.indent}\t`)),
-				c(`\n${state.indent}`),
-				...sparse_commas
-			);
+			chunks.push(c(`\n${state.indent}\t`));
+			push_array(chunks, join(elements, c(`,\n${state.indent}\t`)));
+			chunks.push(c(`\n${state.indent}`));
+			push_array(chunks, sparse_commas);
 		} else {
-			chunks.push(...join(elements, c(', ')), ...sparse_commas);
+			push_array(chunks, join(elements, c(', ')));
+			push_array(chunks, sparse_commas);
 		}
 
 		chunks.push(c(']'));
@@ -1014,7 +971,7 @@ const handlers = {
 		const separator = c(', ');
 
 		node.properties.forEach((p, i) => {
-			chunks.push(...handle(p, {
+			push_array(chunks, handle(p, {
 				...state,
 				indent: state.indent + '\t'
 			}));
@@ -1102,13 +1059,11 @@ const handlers = {
 				chunks.push(c('*'));
 			}
 
-			chunks.push(
-				...(node.computed ? [c('['), ...key, c(']')] : key),
-				c('('),
-				...join(node.value.params.map((/** @type {Pattern} */ param) => handle(param, state)), c(', ')),
-				c(') '),
-				...handle(node.value.body, state)
-			);
+			push_array(chunks, node.computed ? [c('['), ...key, c(']')] : key);
+			chunks.push(c('('));
+			push_array(chunks, join(node.value.params.map((/** @type {Pattern} */ param) => handle(param, state)), c(', ')));
+			chunks.push(c(') '));
+			push_array(chunks, handle(node.value.body, state));
 
 			return chunks;
 		}
@@ -1133,7 +1088,7 @@ const handlers = {
 		const chunks = [c('{ ')];
 
 		for (let i = 0; i < node.properties.length; i += 1) {
-			chunks.push(...handle(node.properties[i], state));
+			push_array(chunks, handle(node.properties[i], state));
 			if (i < node.properties.length - 1) chunks.push(c(', '));
 		}
 
@@ -1163,13 +1118,11 @@ const handlers = {
 			EXPRESSIONS_PRECEDENCE[node.argument.type] <
 			EXPRESSIONS_PRECEDENCE.UnaryExpression
 		) {
-			chunks.push(
-				c('('),
-				...handle(node.argument, state),
-				c(')')
-			);
+			chunks.push(c('('));
+			push_array(chunks, handle(node.argument, state));
+			chunks.push(c(')'));
 		} else {
-			chunks.push(...handle(node.argument, state));
+			push_array(chunks, handle(node.argument, state));
 		}
 
 		return chunks;
@@ -1190,6 +1143,9 @@ const handlers = {
 	},
 
 	BinaryExpression(node, state) {
+		/**
+		 * @type any[]
+		 */
 		const chunks = [];
 
 		// TODO
@@ -1200,44 +1156,41 @@ const handlers = {
 		// }
 
 		if (needs_parens(node.left, node, false)) {
-			chunks.push(
-				c('('),
-				...handle(node.left, state),
-				c(')')
-			);
+			chunks.push(c('('));
+			push_array(chunks, handle(node.left, state));
+			chunks.push(c(')'));
 		} else {
-			chunks.push(...handle(node.left, state));
+			push_array(chunks, handle(node.left, state));
 		}
 
 		chunks.push(c(` ${node.operator} `));
 
 		if (needs_parens(node.right, node, true)) {
-			chunks.push(
-				c('('),
-				...handle(node.right, state),
-				c(')')
-			);
+			chunks.push(c('('));
+			push_array(chunks, handle(node.right, state));
+			chunks.push(c(')'));
 		} else {
-			chunks.push(...handle(node.right, state));
+			push_array(chunks, handle(node.right, state));
 		}
 
 		return chunks;
 	},
 
 	ConditionalExpression(node, state) {
+		/**
+		 * @type any[]
+		 */
 		const chunks = [];
 
 		if (
 			EXPRESSIONS_PRECEDENCE[node.test.type] >
 			EXPRESSIONS_PRECEDENCE.ConditionalExpression
 		) {
-			chunks.push(...handle(node.test, state));
+			push_array(chunks, handle(node.test, state));
 		} else {
-			chunks.push(
-				c('('),
-				...handle(node.test, state),
-				c(')')
-			);
+			chunks.push(c('('));
+			push_array(chunks, handle(node.test, state));
+			chunks.push(c(')'));
 		}
 
 		const child_state = { ...state, indent: state.indent + '\t' };
@@ -1251,19 +1204,15 @@ const handlers = {
 		);
 
 		if (multiple_lines) {
-			chunks.push(
-				c(`\n${state.indent}? `),
-				...consequent,
-				c(`\n${state.indent}: `),
-				...alternate
-			);
+			chunks.push(c(`\n${state.indent}? `));
+			push_array(chunks, consequent);
+			chunks.push(c(`\n${state.indent}: `));
+			push_array(chunks, alternate);
 		} else {
-			chunks.push(
-				c(` ? `),
-				...consequent,
-				c(` : `),
-				...alternate
-			);
+			chunks.push(c(` ? `));
+			push_array(chunks, consequent);
+			chunks.push(c(` : `));
+			push_array(chunks, alternate);
 		}
 
 		return chunks;
@@ -1276,13 +1225,11 @@ const handlers = {
 			EXPRESSIONS_PRECEDENCE[node.callee.type] <
 			EXPRESSIONS_PRECEDENCE.CallExpression || has_call_expression(node.callee)
 		) {
-			chunks.push(
-				c('('),
-				...handle(node.callee, state),
-				c(')')
-			)
+			chunks.push(c('('));
+			push_array(chunks, handle(node.callee, state));
+			chunks.push(c(')'));
 		} else {
-			chunks.push(...handle(node.callee, state));
+			push_array(chunks, handle(node.callee, state));
 		}
 
 		// TODO this is copied from CallExpression — DRY it out
@@ -1295,11 +1242,9 @@ const handlers = {
 			? c(',\n' + state.indent)
 			: c(', ');
 
-		chunks.push(
-			c('('),
-			...join(args, separator),
-			c(')')
-		);
+		chunks.push(c('('));
+		push_array(chunks, join(args, separator));
+		chunks.push(c(')'));
 
 		return chunks;
 	},
@@ -1309,19 +1254,20 @@ const handlers = {
 	},
 
 	CallExpression(/** @type {CallExpression} */ node, state) {
+		/**
+		 * @type any[]
+		 */
 		const chunks = [];
 
 		if (
 			EXPRESSIONS_PRECEDENCE[node.callee.type] <
 			EXPRESSIONS_PRECEDENCE.CallExpression
 		) {
-			chunks.push(
-				c('('),
-				...handle(node.callee, state),
-				c(')')
-			);
+			chunks.push(c('('));
+			push_array(chunks, handle(node.callee, state));
+			chunks.push(c(')'));
 		} else {
-			chunks.push(...handle(node.callee, state));
+			push_array(chunks, handle(node.callee, state));
 		}
 
 		if (/** @type {SimpleCallExpression} */ (node).optional) {
@@ -1339,49 +1285,42 @@ const handlers = {
 				indent: `${state.indent}\t`
 			}));
 
-			chunks.push(
-				c(`(\n${state.indent}\t`),
-				...join(args, c(`,\n${state.indent}\t`)),
-				c(`\n${state.indent})`)
-			);
+			chunks.push(c(`(\n${state.indent}\t`));
+			push_array(chunks, join(args, c(`,\n${state.indent}\t`)));
+			chunks.push(c(`\n${state.indent})`));
 		} else {
-			chunks.push(
-				c('('),
-				...join(args, c(', ')),
-				c(')')
-			);
+			chunks.push(c('('));
+			push_array(chunks, join(args, c(', ')));
+			chunks.push(c(')'));
 		}
 
 		return chunks;
 	},
 
 	MemberExpression(node, state) {
+		/**
+		 * @type any[]
+		 */
 		const chunks = [];
 
 		if (EXPRESSIONS_PRECEDENCE[node.object.type] < EXPRESSIONS_PRECEDENCE.MemberExpression) {
-			chunks.push(
-				c('('),
-				...handle(node.object, state),
-				c(')')
-			);
+			chunks.push(c('('));
+			push_array(chunks, handle(node.object, state));
+			chunks.push(c(')'));
 		} else {
-			chunks.push(...handle(node.object, state));
+			push_array(chunks, handle(node.object, state));
 		}
 
 		if (node.computed) {
 			if (node.optional) {
 				chunks.push(c('?.'));
 			}
-			chunks.push(
-				c('['),
-				...handle(node.property, state),
-				c(']')
-			);
+			chunks.push(c('['));
+			push_array(chunks, handle(node.property, state));
+			chunks.push(c(']'));
 		} else {
-			chunks.push(
-				c(node.optional ? '?.' : '.'),
-				...handle(node.property, state)
-			);
+			chunks.push(c(node.optional ? '?.' : '.'));
+			push_array(chunks, handle(node.property, state));
 		}
 
 		return chunks;
