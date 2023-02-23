@@ -19,10 +19,14 @@ import { push_array } from '../utils/push_array.js';
 /** @typedef {import('estree').Node} Node */
 /** @typedef {import('estree').ObjectExpression} ObjectExpression */
 /** @typedef {import('estree').Pattern} Pattern */
+/** @typedef {import('estree').Property} Property */
+/** @typedef {import('estree').PropertyDefinition} PropertyDefinition */
 /** @typedef {import('estree').SequenceExpression} SequenceExpression */
 /** @typedef {import('estree').SimpleCallExpression} SimpleCallExpression */
 /** @typedef {import('estree').SwitchStatement} SwitchStatement */
 /** @typedef {import('estree').VariableDeclaration} VariableDeclaration */
+/** @typedef {import('estree').StaticBlock} StaticBlock */
+/** @typedef {import('estree').PrivateIdentifier} PrivateIdenifier*/
 
 /**
  * @typedef {{
@@ -1372,6 +1376,50 @@ const handlers = {
 		}
 
 		return [c(node.raw || String(node.value), node)];
+	},
+
+	PropertyDefinition(/** @type {PropertyDefinition} */ node, state) {
+		const chunks = [];
+
+		if (node.static) {
+			chunks.push(c('static '));
+		}
+
+		if (node.computed) {
+			chunks.push(
+				c('['),
+				...handle(node.key, state),
+				c(']')
+			);
+		} else {
+			chunks.push(...handle(node.key, state));
+		}
+
+		if (node.value) {
+			chunks.push(c(' = '))
+
+			chunks.push(...handle(node.value, state));
+		}
+
+		chunks.push(c(';'));
+
+		return chunks;
+	},
+
+	StaticBlock(/** @type {StaticBlock} */ node, state) {
+		const chunks = [c('static ')];
+
+		push_array(chunks, handlers.BlockStatement(node, state));
+
+		return chunks;
+	},
+
+	PrivateIdentifier(/** @type {PrivateIdenifier} */node, state) {
+		const chunks = [c('#')];
+
+		push_array(chunks, [c(node.name, node)]);
+
+		return chunks;
 	}
 };
 
