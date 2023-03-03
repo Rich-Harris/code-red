@@ -31,6 +31,13 @@ const b = (s, ...v) => remove_ranges(codered.b(s, ...v));
 const x = (s, ...v) => remove_ranges(codered.x(s, ...v));
 const p = (s, ...v) => remove_ranges(codered.p(s, ...v));
 const print = codered.print;
+const parse = (s) => codered.parse(s, {
+	ecmaVersion: 2022,
+	sourceType: 'module',
+	allowAwaitOutsideFunction: true,
+	allowImportExportEverywhere: true,
+	allowReturnOutsideFunction: true,
+})
 
 /**
  * @param {string} name
@@ -465,7 +472,7 @@ suite('print', test => {
 
 			const url = new URL(`./samples/${dir}/input.js`, import.meta.url);
 			const mod = await import(fileURLToPath(url.href));
-			const input = mod.default({ b, x, p });
+			const input = mod.default({ b, x, p, parse });
 
 			const expected = {
 				code: read(`test/samples/${dir}/expected.js`),

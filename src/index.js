@@ -127,7 +127,7 @@ const EMPTY = { type: 'Empty' };
 const acorn_opts = (comments, raw) => {
 	const { onComment } = get_comment_handlers(comments, raw);
 	return {
-		ecmaVersion: 2020,
+		ecmaVersion: 2022,
 		sourceType: 'module',
 		allowAwaitOutsideFunction: true,
 		allowImportExportEverywhere: true,

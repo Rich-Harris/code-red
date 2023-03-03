@@ -24,9 +24,9 @@
 	},
 	"license": "MIT",
 	"dependencies": {
+		"@types/estree": "^1.0.0",
 		"@jridgewell/sourcemap-codec": "^1.4.14",
-		"@types/estree": "^0.0.50",
-		"acorn": "^8.0.5",
+		"acorn": "^8.8.2",
 		"estree-walker": "^3.0.0",
 		"periscopic": "^3.0.4"
 	},
