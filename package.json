@@ -17,7 +17,7 @@
 		"build": "tsc",
 		"test": "uvu test test.js",
 		"prepublishOnly": "npm test && npm run build",
-		"repl": "node -e \"const { x, b, print } = require('./dist/code-red.cjs')\" -i"
+		"repl": "node -e \"import('./src/index.js').then(mod => { x = mod.x; b = mod.b; print = mod.print });\" -i"
 	},
 	"license": "MIT",
 	"dependencies": {
