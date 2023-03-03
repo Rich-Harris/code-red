@@ -1,6 +1,6 @@
 import * as perisopic from 'periscopic';
 import { handle } from './handlers.js';
-import { encode } from 'sourcemap-codec';
+import { encode } from '@jridgewell/sourcemap-codec';
 
 /** @type {(str?: string) => string} str */
 let btoa = () => {

@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.2.6
+
+- Replace `sourcemap-codec` with `@jridgewell/sourcemap-codec` ([#74](https://github.com/Rich-Harris/code-red/pull/74))
+
 ## 0.2.5
 
 - Prevent stack overflow with very large ASTs ([#71](https://github.com/Rich-Harris/code-red/pull/71))

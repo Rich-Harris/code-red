@@ -1,4 +1,5 @@
 // @ts-check
+import { decode } from '@jridgewell/sourcemap-codec';
 import * as fs from 'fs';
 import * as acorn from 'acorn';
 import * as uvu from 'uvu';
@@ -6,7 +7,6 @@ import * as assert from 'assert';
 import { generateRandomJS } from 'eslump';
 import * as codered from '../src/index.js';
 import { walk } from 'estree-walker';
-import { decode } from 'sourcemap-codec';
 import { fileURLToPath } from 'url';
 
 /** @typedef {import('estree').Identifier} Identifier */
