@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 0.2.7
+
+- Update to `es2022` ([#73](https://github.com/Rich-Harris/code-red/pull/73))
+
 ## 0.2.6
 
 - Replace `sourcemap-codec` with `@jridgewell/sourcemap-codec` ([#74](https://github.com/Rich-Harris/code-red/pull/74))
