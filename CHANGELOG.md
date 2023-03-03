@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 1.0.0
+
+- Breaking: remove CJS build, remove `main` and `module` ([#75](https://github.com/Rich-Harris/code-red/pull/75))
+
 ## 0.2.7
 
 - Update to `es2022` ([#73](https://github.com/Rich-Harris/code-red/pull/73))
