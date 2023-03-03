@@ -271,9 +271,7 @@ export function b(strings, ...values) {
 	const comments = [];
 
 	try {
-		let ast = /** @type {any} */ (
-			acorn.parse(str, acorn_opts(comments, str))
-		);
+		let ast = /** @type {any} */ (acorn.parse(str, acorn_opts(comments, str)));
 
 		ast = inject(str, ast, values, comments);
 

@@ -3,11 +3,8 @@
 	"description": "code-red",
 	"version": "0.2.7",
 	"repository": "Rich-Harris/code-red",
-	"main": "dist/code-red.cjs",
-	"module": "src/index.js",
 	"exports": {
-		"import": "./src/index.js",
-		"require": "./dist/code-red.cjs"
+		"import": "./src/index.js"
 	},
 	"type": "module",
 	"types": "types/index.d.ts",
@@ -17,24 +14,24 @@
 		"types"
 	],
 	"scripts": {
-		"build": "tsc && esbuild --bundle --external:acorn --external:estree-walker --external:is-reference --external:periscopic --external:@jridgewell/sourcemap-codec --format=cjs --outfile=dist/code-red.cjs src/index.js",
+		"build": "tsc",
 		"test": "uvu test test.js",
 		"prepublishOnly": "npm test && npm run build",
-		"repl": "node -e \"const { x, b, print } = require('./dist/code-red.cjs')\" -i"
+		"repl": "node -e \"import('./src/index.js').then(mod => { x = mod.x; b = mod.b; print = mod.print });\" -i"
 	},
 	"license": "MIT",
 	"dependencies": {
-		"@types/estree": "^1.0.0",
 		"@jridgewell/sourcemap-codec": "^1.4.14",
+		"@types/estree": "^1.0.0",
 		"acorn": "^8.8.2",
-		"estree-walker": "^3.0.0",
-		"periscopic": "^3.0.4"
+		"estree-walker": "^3.0.3",
+		"periscopic": "^3.1.0"
 	},
 	"devDependencies": {
-		"@types/node": "^12.12.7",
-		"esbuild": "^0.11.16",
+		"@types/node": "^18.14.6",
 		"eslump": "^3.0.0",
-		"typescript": "^3.7.2",
+		"typescript": "^4.9.5",
 		"uvu": "^0.5.6"
-	}
+	},
+	"packageManager": "pnpm@7.28.0"
 }

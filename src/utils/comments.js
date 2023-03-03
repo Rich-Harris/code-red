@@ -24,7 +24,6 @@ import { re } from './id.js';
  * @param {string} raw
  */
 export const get_comment_handlers = (comments, raw) => ({
-
 	// pass to acorn options
 	/**
 	 * @param {boolean} block
@@ -55,18 +54,20 @@ export const get_comment_handlers = (comments, raw) => ({
 		while (comments[0] && comments[0].start < node.start) {
 			comment = comments.shift();
 
-			comment.value = comment.value.replace(re, (match, id, at, hash, value) => {
-				if (hash) return `#${value}`;
-				if (at) return `@${value}`;
+			comment.value = comment.value.replace(
+				re,
+				(match, id, at, hash, value) => {
+					if (hash) return `#${value}`;
+					if (at) return `@${value}`;
 
-				return match;
-			});
+					return match;
+				}
+			);
 
 			const next = comments[0] || node;
-			comment.has_trailing_newline = (
+			comment.has_trailing_newline =
 				comment.type === 'Line' ||
-				/\n/.test(raw.slice(comment.end, next.start))
-			);
+				/\n/.test(raw.slice(comment.end, next.start));
 
 			(node.leadingComments || (node.leadingComments = [])).push(comment);
 		}

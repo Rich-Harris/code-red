@@ -4,7 +4,9 @@ import { encode } from '@jridgewell/sourcemap-codec';
 
 /** @type {(str?: string) => string} str */
 let btoa = () => {
-	throw new Error('Unsupported environment: `window.btoa` or `Buffer` should be supported.');
+	throw new Error(
+		'Unsupported environment: `window.btoa` or `Buffer` should be supported.'
+	);
 };
 
 if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
@@ -32,11 +34,14 @@ if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
  */
 export function print(node, opts = {}) {
 	if (Array.isArray(node)) {
-		return print({
-			type: 'Program',
-			body: node,
-			sourceType: 'module'
-		}, opts);
+		return print(
+			{
+				type: 'Program',
+				body: node,
+				sourceType: 'module'
+			},
+			opts
+		);
 	}
 
 	const {
@@ -78,7 +83,7 @@ export function print(node, opts = {}) {
 				current_column,
 				0, // source index is always zero
 				chunk.loc.start.line - 1,
-				chunk.loc.start.column,
+				chunk.loc.start.column
 			]);
 		}
 
@@ -97,7 +102,7 @@ export function print(node, opts = {}) {
 				current_column,
 				0, // source index is always zero
 				chunk.loc.end.line - 1,
-				chunk.loc.end.column,
+				chunk.loc.end.column
 			]);
 		}
 	}
@@ -110,8 +115,10 @@ export function print(node, opts = {}) {
 		names: [],
 		sources: [opts.sourceMapSource || null],
 		sourcesContent: [opts.sourceMapContent || null],
-		mappings: opts.sourceMapEncodeMappings == undefined || opts.sourceMapEncodeMappings
-			? encode(mappings) : mappings
+		mappings:
+			opts.sourceMapEncodeMappings == undefined || opts.sourceMapEncodeMappings
+				? encode(mappings)
+				: mappings
 	};
 
 	Object.defineProperties(map, {
@@ -124,7 +131,9 @@ export function print(node, opts = {}) {
 		toUrl: {
 			enumerable: false,
 			value: function toUrl() {
-				return 'data:application/json;charset=utf-8;base64,' + btoa(this.toString());
+				return (
+					'data:application/json;charset=utf-8;base64,' + btoa(this.toString())
+				);
 			}
 		}
 	});
