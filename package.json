@@ -21,16 +21,16 @@
 	},
 	"license": "MIT",
 	"dependencies": {
-		"@types/estree": "^1.0.0",
 		"@jridgewell/sourcemap-codec": "^1.4.14",
+		"@types/estree": "^1.0.0",
 		"acorn": "^8.8.2",
-		"estree-walker": "^3.0.0",
-		"periscopic": "^3.0.4"
+		"estree-walker": "^3.0.3",
+		"periscopic": "^3.1.0"
 	},
 	"devDependencies": {
-		"@types/node": "^12.12.7",
+		"@types/node": "^18.14.6",
 		"eslump": "^3.0.0",
-		"typescript": "^3.7.2",
+		"typescript": "^4.9.5",
 		"uvu": "^0.5.6"
 	}
 }

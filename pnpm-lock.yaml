@@ -3,12 +3,12 @@ lockfileVersion: 5.4
 specifiers:
   '@jridgewell/sourcemap-codec': ^1.4.14
   '@types/estree': ^1.0.0
-  '@types/node': ^12.12.7
+  '@types/node': ^18.14.6
   acorn: ^8.8.2
   eslump: ^3.0.0
-  estree-walker: ^3.0.0
-  periscopic: ^3.0.4
-  typescript: ^3.7.2
+  estree-walker: ^3.0.3
+  periscopic: ^3.1.0
+  typescript: ^4.9.5
   uvu: ^0.5.6
 
 dependencies:
@@ -19,9 +19,9 @@ dependencies:
   periscopic: 3.1.0
 
 devDependencies:
-  '@types/node': 12.20.55
+  '@types/node': 18.14.6
   eslump: 3.0.0
-  typescript: 3.9.10
+  typescript: 4.9.5
   uvu: 0.5.6
 
 packages:
@@ -55,8 +55,8 @@ packages:
     resolution: {integrity: sha512-WulqXMDUTYAXCjZnk6JtIHPigp55cVtDgDrO2gHRwhyJto21+1zbVCtOYB2L1F9w4qCQ0rOGWBnBe0FNTiEJIQ==}
     dev: false
 
-  /@types/node/12.20.55:
-    resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
+  /@types/node/18.14.6:
+    resolution: {integrity: sha512-93+VvleD3mXwlLI/xASjw0FzKcwzl3OdTCzm1LaRfqgS21gfFtK3zDXM5Op9TeeMsJVOaJ2VRDpT9q4Y3d0AvA==}
     dev: true
 
   /acorn/8.8.2:
@@ -289,8 +289,8 @@ packages:
       prelude-ls: 1.2.1
     dev: true
 
-  /typescript/3.9.10:
-    resolution: {integrity: sha512-w6fIxVE/H1PkLKcCPsFqKE7Kv7QUwhU8qQY2MueZXWx5cPZdwFupLgKK3vntcK98BtNHZtAF4LA/yl2a7k8R6Q==}
+  /typescript/4.9.5:
+    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
     engines: {node: '>=4.2.0'}
     hasBin: true
     dev: true
