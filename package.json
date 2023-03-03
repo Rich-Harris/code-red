@@ -3,11 +3,8 @@
 	"description": "code-red",
 	"version": "0.2.7",
 	"repository": "Rich-Harris/code-red",
-	"main": "dist/code-red.cjs",
-	"module": "src/index.js",
 	"exports": {
-		"import": "./src/index.js",
-		"require": "./dist/code-red.cjs"
+		"import": "./src/index.js"
 	},
 	"type": "module",
 	"types": "types/index.d.ts",
@@ -17,7 +14,7 @@
 		"types"
 	],
 	"scripts": {
-		"build": "tsc && esbuild --bundle --external:acorn --external:estree-walker --external:is-reference --external:periscopic --external:@jridgewell/sourcemap-codec --format=cjs --outfile=dist/code-red.cjs src/index.js",
+		"build": "tsc",
 		"test": "uvu test test.js",
 		"prepublishOnly": "npm test && npm run build",
 		"repl": "node -e \"const { x, b, print } = require('./dist/code-red.cjs')\" -i"
@@ -32,7 +29,6 @@
 	},
 	"devDependencies": {
 		"@types/node": "^12.12.7",
-		"esbuild": "^0.11.16",
 		"eslump": "^3.0.0",
 		"typescript": "^3.7.2",
 		"uvu": "^0.5.6"
