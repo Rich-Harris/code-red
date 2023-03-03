@@ -69,9 +69,25 @@ export function handle(node, state) {
 	const result = handler(node, state);
 
 	if (node.leadingComments) {
-		result.unshift(c(node.leadingComments.map(comment => comment.type === 'Block'
-			? `/*${comment.value}*/${/** @type {any} */ (comment).has_trailing_newline ? `\n${state.indent}` : ` `}`
-			: `//${comment.value}${/** @type {any} */ (comment).has_trailing_newline ? `\n${state.indent}` : ` `}`).join(``)));
+		result.unshift(
+			c(
+				node.leadingComments
+					.map((comment) =>
+						comment.type === 'Block'
+							? `/*${comment.value}*/${
+									/** @type {any} */ (comment).has_trailing_newline
+										? `\n${state.indent}`
+										: ` `
+							  }`
+							: `//${comment.value}${
+									/** @type {any} */ (comment).has_trailing_newline
+										? `\n${state.indent}`
+										: ` `
+							  }`
+					)
+					.join(``)
+			)
+		);
 	}
 
 	if (node.trailingComments) {
@@ -119,7 +135,7 @@ const OPERATOR_PRECEDENCE = {
 	'*': 12,
 	'%': 12,
 	'/': 12,
-	'**': 13,
+	'**': 13
 };
 
 /** @type {Record<string, number>} */
@@ -188,7 +204,10 @@ function needs_parens(node, parent, is_right) {
 		return false;
 	}
 
-	if (/** @type {BinaryExpression} */ (node).operator === '**' && parent.operator === '**') {
+	if (
+		/** @type {BinaryExpression} */ (node).operator === '**' &&
+		parent.operator === '**'
+	) {
 		// Exponentiation operator has right-to-left associativity
 		return !is_right;
 	}
@@ -299,7 +318,7 @@ const deconflict = (name, names) => {
 const handle_body = (nodes, state) => {
 	const chunks = [];
 
-	const body = nodes.map(statement => {
+	const body = nodes.map((statement) => {
 		const chunks = handle(statement, {
 			...state,
 			indent: state.indent
@@ -311,11 +330,15 @@ const handle_body = (nodes, state) => {
 			const comment = state.comments.shift();
 			const prefix = add_newline ? `\n${state.indent}` : ` `;
 
-			chunks.push(c(comment.type === 'Block'
-				? `${prefix}/*${comment.value}*/`
-				: `${prefix}//${comment.value}`));
+			chunks.push(
+				c(
+					comment.type === 'Block'
+						? `${prefix}/*${comment.value}*/`
+						: `${prefix}//${comment.value}`
+				)
+			);
 
-			add_newline = (comment.type === 'Line');
+			add_newline = comment.type === 'Line';
 		}
 
 		return chunks;
@@ -328,7 +351,11 @@ const handle_body = (nodes, state) => {
 
 		if (i > 0) {
 			chunks.push(
-				c(needs_padding || needed_padding ? `\n\n${state.indent}` : `\n${state.indent}`)
+				c(
+					needs_padding || needed_padding
+						? `\n\n${state.indent}`
+						: `\n${state.indent}`
+				)
 			);
 		}
 
@@ -347,15 +374,18 @@ const handle_body = (nodes, state) => {
 const handle_var_declaration = (node, state) => {
 	const chunks = [c(`${node.kind} `)];
 
-	const declarators = node.declarations.map(d => handle(d, {
-		...state,
-		indent: state.indent + (node.declarations.length === 1 ? '' : '\t')
-	}));
-
-	const multiple_lines = (
-		declarators.some(has_newline) ||
-		(declarators.map(get_length).reduce(sum, 0) + (state.indent.length + declarators.length - 1) * 2) > 80
+	const declarators = node.declarations.map((d) =>
+		handle(d, {
+			...state,
+			indent: state.indent + (node.declarations.length === 1 ? '' : '\t')
+		})
 	);
+
+	const multiple_lines =
+		declarators.some(has_newline) ||
+		declarators.map(get_length).reduce(sum, 0) +
+			(state.indent.length + declarators.length - 1) * 2 >
+			80;
 
 	const separator = c(multiple_lines ? `,\n${state.indent}\t` : ', ');
 
@@ -392,17 +422,10 @@ const handlers = {
 			node.expression.left.type === 'ObjectPattern'
 		) {
 			// is an AssignmentExpression to an ObjectPattern
-			return [
-				c('('),
-				...handle(node.expression, state),
-				c(');')
-			];
+			return [c('('), ...handle(node.expression, state), c(');')];
 		}
 
-		return [
-			...handle(node.expression, state),
-			c(';')
-		];
+		return [...handle(node.expression, state), c(';')];
 	},
 
 	IfStatement(node, state) {
@@ -422,11 +445,7 @@ const handlers = {
 	},
 
 	LabeledStatement(node, state) {
-		return [
-			...handle(node.label, state),
-			c(': '),
-			...handle(node.body, state)
-		];
+		return [...handle(node.label, state), c(': '), ...handle(node.body, state)];
 	},
 
 	BreakStatement(node, state) {
@@ -457,18 +476,24 @@ const handlers = {
 			c(') {')
 		];
 
-		node.cases.forEach(block => {
+		node.cases.forEach((block) => {
 			if (block.test) {
 				chunks.push(c(`\n${state.indent}\tcase `));
-				push_array(chunks, handle(block.test, { ...state, indent: `${state.indent}\t` }));
+				push_array(
+					chunks,
+					handle(block.test, { ...state, indent: `${state.indent}\t` })
+				);
 				chunks.push(c(':'));
 			} else {
-				chunks.push(c(`\n${state.indent}\tdefault:`))
+				chunks.push(c(`\n${state.indent}\tdefault:`));
 			}
 
-			block.consequent.forEach(statement => {
+			block.consequent.forEach((statement) => {
 				chunks.push(c(`\n${state.indent}\t\t`));
-				push_array(chunks, handle(statement, { ...state, indent: `${state.indent}\t\t` }));
+				push_array(
+					chunks,
+					handle(statement, { ...state, indent: `${state.indent}\t\t` })
+				);
 			});
 		});
 
@@ -479,7 +504,13 @@ const handlers = {
 
 	ReturnStatement(node, state) {
 		if (node.argument) {
-			const contains_comment = node.argument.leadingComments && node.argument.leadingComments.some((/** @type import('../utils/comments.js').CommentWithLocation */ comment) => comment.has_trailing_newline);
+			const contains_comment =
+				node.argument.leadingComments &&
+				node.argument.leadingComments.some(
+					(
+						/** @type import('../utils/comments.js').CommentWithLocation */ comment
+					) => comment.has_trailing_newline
+				);
 			return [
 				c(contains_comment ? 'return (' : 'return '),
 				...handle(node.argument, state),
@@ -491,18 +522,11 @@ const handlers = {
 	},
 
 	ThrowStatement(node, state) {
-		return [
-			c('throw '),
-			...handle(node.argument, state),
-			c(';')
-		];
+		return [c('throw '), ...handle(node.argument, state), c(';')];
 	},
 
 	TryStatement(node, state) {
-		const chunks = [
-			c('try '),
-			...handle(node.block, state)
-		];
+		const chunks = [c('try '), ...handle(node.block, state)];
 
 		if (node.handler) {
 			if (node.handler.param) {
@@ -566,9 +590,7 @@ const handlers = {
 	}),
 
 	ForInStatement: scoped((node, state) => {
-		const chunks = [
-			c(`for ${node.await ? 'await ' : ''}(`)
-		];
+		const chunks = [c(`for ${node.await ? 'await ' : ''}(`)];
 
 		if (node.left.type === 'VariableDeclaration') {
 			push_array(chunks, handle_var_declaration(node.left, state));
@@ -588,39 +610,44 @@ const handlers = {
 		return [c('debugger', node), c(';')];
 	},
 
-	FunctionDeclaration: scoped((/** @type {FunctionDeclaration} */ node, state) => {
-		const chunks = [];
+	FunctionDeclaration: scoped(
+		(/** @type {FunctionDeclaration} */ node, state) => {
+			const chunks = [];
 
-		if (node.async) chunks.push(c('async '));
-		chunks.push(c(node.generator ? 'function* ' : 'function '));
-		if (node.id) push_array(chunks, handle(node.id, state));
-		chunks.push(c('('));
+			if (node.async) chunks.push(c('async '));
+			chunks.push(c(node.generator ? 'function* ' : 'function '));
+			if (node.id) push_array(chunks, handle(node.id, state));
+			chunks.push(c('('));
 
-		const params = node.params.map(p => handle(p, {
-			...state,
-			indent: state.indent + '\t'
-		}));
+			const params = node.params.map((p) =>
+				handle(p, {
+					...state,
+					indent: state.indent + '\t'
+				})
+			);
 
-		const multiple_lines = (
-			params.some(has_newline) ||
-			(params.map(get_length).reduce(sum, 0) + (state.indent.length + params.length - 1) * 2) > 80
-		);
+			const multiple_lines =
+				params.some(has_newline) ||
+				params.map(get_length).reduce(sum, 0) +
+					(state.indent.length + params.length - 1) * 2 >
+					80;
 
-		const separator = c(multiple_lines ? `,\n${state.indent}` : ', ');
+			const separator = c(multiple_lines ? `,\n${state.indent}` : ', ');
 
-		if (multiple_lines) {
-			chunks.push(c(`\n${state.indent}\t`));
-			push_array(chunks, join(params, separator));
-			chunks.push(c(`\n${state.indent}`));
-		} else {
-			push_array(chunks, join(params, separator));
+			if (multiple_lines) {
+				chunks.push(c(`\n${state.indent}\t`));
+				push_array(chunks, join(params, separator));
+				chunks.push(c(`\n${state.indent}`));
+			} else {
+				push_array(chunks, join(params, separator));
+			}
+
+			chunks.push(c(') '));
+			push_array(chunks, handle(node.body, state));
+
+			return chunks;
 		}
-
-		chunks.push(c(') '));
-		push_array(chunks, handle(node.body, state));
-
-		return chunks;
-	}),
+	),
 
 	VariableDeclaration(node, state) {
 		return handle_var_declaration(node, state).concat(c(';'));
@@ -628,11 +655,7 @@ const handlers = {
 
 	VariableDeclarator(node, state) {
 		if (node.init) {
-			return [
-				...handle(node.id, state),
-				c(' = '),
-				...handle(node.init, state)
-			];
+			return [...handle(node.id, state), c(' = '), ...handle(node.init, state)];
 		} else {
 			return handle(node.id, state);
 		}
@@ -686,18 +709,25 @@ const handlers = {
 
 			if (i < length) {
 				// we have named specifiers
-				const specifiers = node.specifiers.slice(i).map((/** @type {ImportSpecifier} */ specifier) => {
-					const name = handle(specifier.imported, state)[0];
-					const as = handle(specifier.local, state)[0];
+				const specifiers = node.specifiers
+					.slice(i)
+					.map((/** @type {ImportSpecifier} */ specifier) => {
+						const name = handle(specifier.imported, state)[0];
+						const as = handle(specifier.local, state)[0];
 
-					if (name.content === as.content) {
-						return [as];
-					}
+						if (name.content === as.content) {
+							return [as];
+						}
 
-					return [name, c(' as '), as];
-				});
+						return [name, c(' as '), as];
+					});
 
-				const width = get_length(chunks) + specifiers.map(get_length).reduce(sum, 0) + (2 * specifiers.length) + 6 + get_length(source);
+				const width =
+					get_length(chunks) +
+					specifiers.map(get_length).reduce(sum, 0) +
+					2 * specifiers.length +
+					6 +
+					get_length(source);
 
 				if (width > 80) {
 					chunks.push(c(`{\n\t`));
@@ -724,10 +754,7 @@ const handlers = {
 	},
 
 	ExportDefaultDeclaration(node, state) {
-		const chunks = [
-			c(`export default `),
-			...handle(node.declaration, state)
-		];
+		const chunks = [c(`export default `), ...handle(node.declaration, state)];
 
 		if (node.declaration.type !== 'FunctionDeclaration') {
 			chunks.push(c(';'));
@@ -742,18 +769,21 @@ const handlers = {
 		if (node.declaration) {
 			push_array(chunks, handle(node.declaration, state));
 		} else {
-			const specifiers = node.specifiers.map((/** @type {ExportSpecifier} */ specifier) => {
-				const name = handle(specifier.local, state)[0];
-				const as = handle(specifier.exported, state)[0];
+			const specifiers = node.specifiers.map(
+				(/** @type {ExportSpecifier} */ specifier) => {
+					const name = handle(specifier.local, state)[0];
+					const as = handle(specifier.exported, state)[0];
 
-				if (name.content === as.content) {
-					return [name];
+					if (name.content === as.content) {
+						return [name];
+					}
+
+					return [name, c(' as '), as];
 				}
+			);
 
-				return [name, c(' as '), as];
-			});
-
-			const width = 7 + specifiers.map(get_length).reduce(sum, 0) + 2 * specifiers.length;
+			const width =
+				7 + specifiers.map(get_length).reduce(sum, 0) + 2 * specifiers.length;
 
 			if (width > 80) {
 				chunks.push(c('{\n\t'));
@@ -777,11 +807,7 @@ const handlers = {
 	},
 
 	ExportAllDeclaration(node, state) {
-		return [
-			c(`export * from `),
-			...handle(node.source, state),
-			c(`;`)
-		];
+		return [c(`export * from `), ...handle(node.source, state), c(`;`)];
 	},
 
 	MethodDefinition(node, state) {
@@ -826,39 +852,44 @@ const handlers = {
 		return chunks;
 	},
 
-	ArrowFunctionExpression: scoped((/** @type {ArrowFunctionExpression} */ node, state) => {
-		const chunks = [];
+	ArrowFunctionExpression: scoped(
+		(/** @type {ArrowFunctionExpression} */ node, state) => {
+			const chunks = [];
 
-		if (node.async) chunks.push(c('async '));
+			if (node.async) chunks.push(c('async '));
 
-		if (node.params.length === 1 && node.params[0].type === 'Identifier') {
-			push_array(chunks, handle(node.params[0], state));
-		} else {
-			const params = node.params.map(param => handle(param, {
-				...state,
-				indent: state.indent + '\t'
-			}));
+			if (node.params.length === 1 && node.params[0].type === 'Identifier') {
+				push_array(chunks, handle(node.params[0], state));
+			} else {
+				const params = node.params.map((param) =>
+					handle(param, {
+						...state,
+						indent: state.indent + '\t'
+					})
+				);
 
-			chunks.push(c('('));
-			push_array(chunks, join(params, c(', ')));
-			chunks.push(c(')'));
+				chunks.push(c('('));
+				push_array(chunks, join(params, c(', ')));
+				chunks.push(c(')'));
+			}
+
+			chunks.push(c(' => '));
+
+			if (
+				node.body.type === 'ObjectExpression' ||
+				(node.body.type === 'AssignmentExpression' &&
+					node.body.left.type === 'ObjectPattern')
+			) {
+				chunks.push(c('('));
+				push_array(chunks, handle(node.body, state));
+				chunks.push(c(')'));
+			} else {
+				push_array(chunks, handle(node.body, state));
+			}
+
+			return chunks;
 		}
-
-		chunks.push(c(' => '));
-
-		if (
-			node.body.type === 'ObjectExpression' ||
-			(node.body.type === 'AssignmentExpression' && node.body.left.type === 'ObjectPattern')
-		) {
-			chunks.push(c('('));
-			push_array(chunks, handle(node.body, state));
-			chunks.push(c(')'));
-		} else {
-			push_array(chunks, handle(node.body, state));
-		}
-
-		return chunks;
-	}),
+	),
 
 	ThisExpression(node, state) {
 		return [c('this', node)];
@@ -874,7 +905,10 @@ const handlers = {
 
 	YieldExpression(node, state) {
 		if (node.argument) {
-			return [c(node.delegate ? `yield* ` : `yield `), ...handle(node.argument, state)];
+			return [
+				c(node.delegate ? `yield* ` : `yield `),
+				...handle(node.argument, state)
+			];
 		}
 
 		return [c(node.delegate ? `yield*` : `yield`)];
@@ -884,7 +918,7 @@ const handlers = {
 		if (node.argument) {
 			const precedence = EXPRESSIONS_PRECEDENCE[node.argument.type];
 
-			if (precedence && (precedence < EXPRESSIONS_PRECEDENCE.AwaitExpression)) {
+			if (precedence && precedence < EXPRESSIONS_PRECEDENCE.AwaitExpression) {
 				return [c('await ('), ...handle(node.argument, state), c(')')];
 			} else {
 				return [c('await '), ...handle(node.argument, state)];
@@ -900,18 +934,12 @@ const handlers = {
 		const { quasis, expressions } = node;
 
 		for (let i = 0; i < expressions.length; i++) {
-			chunks.push(
-				c(quasis[i].value.raw),
-				c('${')
-			);
+			chunks.push(c(quasis[i].value.raw), c('${'));
 			push_array(chunks, handle(expressions[i], state));
 			chunks.push(c('}'));
 		}
 
-		chunks.push(
-			c(quasis[quasis.length - 1].value.raw),
-			c('`')
-		);
+		chunks.push(c(quasis[quasis.length - 1].value.raw), c('`'));
 
 		return chunks;
 	},
@@ -933,20 +961,24 @@ const handlers = {
 			// can't use map/forEach because of sparse arrays
 			const element = node.elements[i];
 			if (element) {
-				elements.push([...sparse_commas, ...handle(element, {
-					...state,
-					indent: state.indent + '\t'
-				})]);
+				elements.push([
+					...sparse_commas,
+					...handle(element, {
+						...state,
+						indent: state.indent + '\t'
+					})
+				]);
 				sparse_commas = [];
 			} else {
 				sparse_commas.push(c(','));
 			}
 		}
 
-		const multiple_lines = (
+		const multiple_lines =
 			elements.some(has_newline) ||
-			(elements.map(get_length).reduce(sum, 0) + (state.indent.length + elements.length - 1) * 2) > 80
-		);
+			elements.map(get_length).reduce(sum, 0) +
+				(state.indent.length + elements.length - 1) * 2 >
+				80;
 
 		if (multiple_lines) {
 			chunks.push(c(`\n${state.indent}\t`));
@@ -975,10 +1007,13 @@ const handlers = {
 		const separator = c(', ');
 
 		node.properties.forEach((p, i) => {
-			push_array(chunks, handle(p, {
-				...state,
-				indent: state.indent + '\t'
-			}));
+			push_array(
+				chunks,
+				handle(p, {
+					...state,
+					indent: state.indent + '\t'
+				})
+			);
 
 			if (state.comments.length) {
 				// TODO generalise this, so it works with ArrayExpressions and other things.
@@ -988,9 +1023,13 @@ const handlers = {
 				while (state.comments.length) {
 					const comment = state.comments.shift();
 
-					chunks.push(c(comment.type === 'Block'
-						? `/*${comment.value}*/\n${state.indent}\t`
-						: `//${comment.value}\n${state.indent}\t`));
+					chunks.push(
+						c(
+							comment.type === 'Block'
+								? `/*${comment.value}*/\n${state.indent}\t`
+								: `//${comment.value}\n${state.indent}\t`
+						)
+					);
 
 					if (comment.type === 'Line') {
 						has_inline_comment = true;
@@ -1003,11 +1042,8 @@ const handlers = {
 			}
 		});
 
-		const multiple_lines = (
-			has_inline_comment ||
-			has_newline(chunks) ||
-			get_length(chunks) > 40
-		);
+		const multiple_lines =
+			has_inline_comment || has_newline(chunks) || get_length(chunks) > 40;
 
 		if (multiple_lines) {
 			separator.content = `,\n${state.indent}\t`;
@@ -1037,10 +1073,12 @@ const handlers = {
 			return value;
 		}
 
-		if (!node.computed && node.value.type === 'Identifier' && (
-			(node.key.type === 'Identifier' && node.key.name === value[0].content) ||
-			(node.key.type === 'Literal' && node.key.value === value[0].content)
-		)) {
+		if (
+			!node.computed &&
+			node.value.type === 'Identifier' &&
+			((node.key.type === 'Identifier' && node.key.name === value[0].content) ||
+				(node.key.type === 'Literal' && node.key.value === value[0].content))
+		) {
 			return value;
 		}
 
@@ -1052,9 +1090,7 @@ const handlers = {
 				scope: state.scope_map.get(node.value)
 			};
 
-			const chunks = node.kind !== 'init'
-				? [c(`${node.kind} `)]
-				: [];
+			const chunks = node.kind !== 'init' ? [c(`${node.kind} `)] : [];
 
 			if (node.value.async) {
 				chunks.push(c('async '));
@@ -1065,7 +1101,15 @@ const handlers = {
 
 			push_array(chunks, node.computed ? [c('['), ...key, c(']')] : key);
 			chunks.push(c('('));
-			push_array(chunks, join(node.value.params.map((/** @type {Pattern} */ param) => handle(param, state)), c(', ')));
+			push_array(
+				chunks,
+				join(
+					node.value.params.map((/** @type {Pattern} */ param) =>
+						handle(param, state)
+					),
+					c(', ')
+				)
+			);
 			chunks.push(c(') '));
 			push_array(chunks, handle(node.value.body, state));
 
@@ -1073,19 +1117,10 @@ const handlers = {
 		}
 
 		if (node.computed) {
-			return [
-				c('['),
-				...key,
-				c(']: '),
-				...value
-			];
+			return [c('['), ...key, c(']: '), ...value];
 		}
 
-		return [
-			...key,
-			c(': '),
-			...value
-		];
+		return [...key, c(': '), ...value];
 	},
 
 	ObjectPattern(node, state) {
@@ -1102,13 +1137,9 @@ const handlers = {
 	},
 
 	SequenceExpression(/** @type {SequenceExpression} */ node, state) {
-		const expressions = node.expressions.map(e => handle(e, state));
+		const expressions = node.expressions.map((e) => handle(e, state));
 
-		return [
-			c('('),
-			...join(expressions, c(', ')),
-			c(')')
-		];
+		return [c('('), ...join(expressions, c(', ')), c(')')];
 	},
 
 	UnaryExpression(node, state) {
@@ -1202,10 +1233,10 @@ const handlers = {
 		const consequent = handle(node.consequent, child_state);
 		const alternate = handle(node.alternate, child_state);
 
-		const multiple_lines = (
-			has_newline(consequent) || has_newline(alternate) ||
-			get_length(chunks) + get_length(consequent) + get_length(alternate) > 50
-		);
+		const multiple_lines =
+			has_newline(consequent) ||
+			has_newline(alternate) ||
+			get_length(chunks) + get_length(consequent) + get_length(alternate) > 50;
 
 		if (multiple_lines) {
 			chunks.push(c(`\n${state.indent}? `));
@@ -1227,7 +1258,8 @@ const handlers = {
 
 		if (
 			EXPRESSIONS_PRECEDENCE[node.callee.type] <
-			EXPRESSIONS_PRECEDENCE.CallExpression || has_call_expression(node.callee)
+				EXPRESSIONS_PRECEDENCE.CallExpression ||
+			has_call_expression(node.callee)
 		) {
 			chunks.push(c('('));
 			push_array(chunks, handle(node.callee, state));
@@ -1237,10 +1269,12 @@ const handlers = {
 		}
 
 		// TODO this is copied from CallExpression — DRY it out
-		const args = node.arguments.map(arg => handle(arg, {
-			...state,
-			indent: state.indent + '\t'
-		}));
+		const args = node.arguments.map((arg) =>
+			handle(arg, {
+				...state,
+				indent: state.indent + '\t'
+			})
+		);
 
 		const separator = args.some(has_newline) // TODO or length exceeds 80
 			? c(',\n' + state.indent)
@@ -1278,16 +1312,18 @@ const handlers = {
 			chunks.push(c('?.'));
 		}
 
-		const args = node.arguments.map(arg => handle(arg, state));
+		const args = node.arguments.map((arg) => handle(arg, state));
 
 		const multiple_lines = args.slice(0, -1).some(has_newline); // TODO or length exceeds 80
 
 		if (multiple_lines) {
 			// need to handle args again. TODO find alternative approach?
-			const args = node.arguments.map(arg => handle(arg, {
-				...state,
-				indent: `${state.indent}\t`
-			}));
+			const args = node.arguments.map((arg) =>
+				handle(arg, {
+					...state,
+					indent: `${state.indent}\t`
+				})
+			);
 
 			chunks.push(c(`(\n${state.indent}\t`));
 			push_array(chunks, join(args, c(`,\n${state.indent}\t`)));
@@ -1307,7 +1343,10 @@ const handlers = {
 		 */
 		const chunks = [];
 
-		if (EXPRESSIONS_PRECEDENCE[node.object.type] < EXPRESSIONS_PRECEDENCE.MemberExpression) {
+		if (
+			EXPRESSIONS_PRECEDENCE[node.object.type] <
+			EXPRESSIONS_PRECEDENCE.MemberExpression
+		) {
 			chunks.push(c('('));
 			push_array(chunks, handle(node.object, state));
 			chunks.push(c(')'));
@@ -1331,7 +1370,11 @@ const handlers = {
 	},
 
 	MetaProperty(node, state) {
-		return [...handle(node.meta, state), c('.'), ...handle(node.property, state)];
+		return [
+			...handle(node.meta, state),
+			c('.'),
+			...handle(node.property, state)
+		];
 	},
 
 	Identifier(node, state) {
@@ -1353,7 +1396,10 @@ const handlers = {
 			const deconflict_map = state.deconflicted.get(owner);
 
 			if (!deconflict_map.has(node.name)) {
-				deconflict_map.set(node.name, deconflict(node.name.slice(1), owner.references));
+				deconflict_map.set(
+					node.name,
+					deconflict(node.name.slice(1), owner.references)
+				);
 			}
 
 			name = deconflict_map.get(node.name);
@@ -1367,11 +1413,17 @@ const handlers = {
 			return [
 				// TODO do we need to handle weird unicode characters somehow?
 				// str.replace(/\\u(\d{4})/g, (m, n) => String.fromCharCode(+n))
-				c((node.raw || JSON.stringify(node.value)).replace(re, (_m, _i, at, hash, name) => {
-					if (at)	return '@' + name;
-					if (hash) return '#' + name;
-					throw new Error(`this shouldn't happen`);
-				}), node)
+				c(
+					(node.raw || JSON.stringify(node.value)).replace(
+						re,
+						(_m, _i, at, hash, name) => {
+							if (at) return '@' + name;
+							if (hash) return '#' + name;
+							throw new Error(`this shouldn't happen`);
+						}
+					),
+					node
+				)
 			];
 		}
 
@@ -1386,17 +1438,13 @@ const handlers = {
 		}
 
 		if (node.computed) {
-			chunks.push(
-				c('['),
-				...handle(node.key, state),
-				c(']')
-			);
+			chunks.push(c('['), ...handle(node.key, state), c(']'));
 		} else {
 			chunks.push(...handle(node.key, state));
 		}
 
 		if (node.value) {
-			chunks.push(c(' = '))
+			chunks.push(c(' = '));
 
 			chunks.push(...handle(node.value, state));
 		}
@@ -1414,7 +1462,7 @@ const handlers = {
 		return chunks;
 	},
 
-	PrivateIdentifier(/** @type {PrivateIdenifier} */node, state) {
+	PrivateIdentifier(/** @type {PrivateIdenifier} */ node, state) {
 		const chunks = [c('#')];
 
 		push_array(chunks, [c(node.name, node)]);
