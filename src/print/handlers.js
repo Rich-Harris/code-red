@@ -1312,18 +1312,35 @@ const handlers = {
 			chunks.push(c('?.'));
 		}
 
-		const args = node.arguments.map((arg) => handle(arg, state));
+		const args = node.arguments.map((arg) => {
+			const chunks = [];
+			while (state.comments.length) {
+				const comment = state.comments.shift();
+				chunks.push(c(comment.type === 'Block'
+					? `/*${comment.value}*/ `
+					: `//${comment.value}`));
+			}
+			push_array(chunks, handle(arg, state));
+			return chunks;
+		});
 
 		const multiple_lines = args.slice(0, -1).some(has_newline); // TODO or length exceeds 80
-
 		if (multiple_lines) {
 			// need to handle args again. TODO find alternative approach?
-			const args = node.arguments.map((arg) =>
-				handle(arg, {
+			const args = node.arguments.map((arg) => {
+				const chunks = [];
+				while (state.comments.length) {
+					const comment = state.comments.shift();
+					chunks.push(c(comment.type === 'Block'
+						? `/*${comment.value}*/ `
+						: `//${comment.value}`));
+				}
+				push_array(chunks, handle(arg, {
 					...state,
 					indent: `${state.indent}\t`
-				})
-			);
+				}));
+				return chunks;
+			});
 
 			chunks.push(c(`(\n${state.indent}\t`));
 			push_array(chunks, join(args, c(`,\n${state.indent}\t`)));
