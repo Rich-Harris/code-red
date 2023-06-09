@@ -10,13 +10,11 @@
 	"types": "types/index.d.ts",
 	"files": [
 		"src",
-		"dist",
 		"types"
 	],
 	"scripts": {
-		"build": "tsc",
 		"test": "uvu test test.js",
-		"prepublishOnly": "npm test && npm run build",
+		"prepublishOnly": "npm test",
 		"repl": "node -e \"import('./src/index.js').then(mod => { x = mod.x; b = mod.b; print = mod.print });\" -i"
 	},
 	"license": "MIT",
@@ -33,5 +31,5 @@
 		"typescript": "^4.9.5",
 		"uvu": "^0.5.6"
 	},
-	"packageManager": "pnpm@7.28.0"
+	"packageManager": "pnpm@8.6.0"
 }
