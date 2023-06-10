@@ -1,7 +1,7 @@
 {
 	"name": "code-red",
 	"description": "code-red",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"repository": "Rich-Harris/code-red",
 	"exports": {
 		"import": "./src/index.js"
