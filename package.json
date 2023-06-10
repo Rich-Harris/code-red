@@ -13,8 +13,9 @@
 		"types"
 	],
 	"scripts": {
+		"build": "tsc",
 		"test": "uvu test test.js",
-		"prepublishOnly": "npm test",
+		"prepublishOnly": "npm test && npm run build",
 		"repl": "node -e \"import('./src/index.js').then(mod => { x = mod.x; b = mod.b; print = mod.print });\" -i"
 	},
 	"license": "MIT",
