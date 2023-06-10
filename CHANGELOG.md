@@ -1,5 +1,10 @@
 # code-red changelog
 
+## 1.0.1
+
+- Remove `dist` directory from package ([#77](https://github.com/Rich-Harris/code-red/pull/77))
+- Fix position of inline comments ([#76](https://github.com/Rich-Harris/code-red/pull/76))
+
 ## 1.0.0
 
 - Breaking: remove CJS build, remove `main` and `module` ([#75](https://github.com/Rich-Harris/code-red/pull/75))
