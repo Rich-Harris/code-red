@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 1.0.2
+
+- Use `dts-buddy` to generate type declarations ([#78](https://github.com/Rich-Harris/code-red/pull/78))
+
 ## 1.0.1
 
 - Remove `dist` directory from package ([#77](https://github.com/Rich-Harris/code-red/pull/77))
