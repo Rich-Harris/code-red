@@ -31,9 +31,6 @@ devDependencies:
   eslump:
     specifier: ^3.0.0
     version: 3.0.0
-  typescript:
-    specifier: ^4.9.5
-    version: 4.9.5
   uvu:
     specifier: ^0.5.6
     version: 0.5.6
@@ -388,12 +385,6 @@ packages:
     engines: {node: '>= 0.8.0'}
     dependencies:
       prelude-ls: 1.2.1
-    dev: true
-
-  /typescript@4.9.5:
-    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
-    engines: {node: '>=4.2.0'}
-    hasBin: true
     dev: true
 
   /typescript@5.1.3:
