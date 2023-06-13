@@ -25,6 +25,9 @@ devDependencies:
   '@types/node':
     specifier: ^18.14.6
     version: 18.14.6
+  dts-buddy:
+    specifier: ^0.1.2
+    version: link:../dts-buddy
   eslump:
     specifier: ^3.0.0
     version: 3.0.0
