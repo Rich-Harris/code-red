@@ -4,6 +4,9 @@ export default ({ b }) => b`
 		// foo
 		new Date()
 	);
+	console.log(null, // foo
+		new Date()
+	);
 	console.log(null, /* xxx */ function (a, b) {
 		// yyy
 		return a + b;
