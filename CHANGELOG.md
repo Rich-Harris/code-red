@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 1.0.3
+
+- Fix inline comments in function arguments ([#79](https://github.com/Rich-Harris/code-red/pull/79))
+
 ## 1.0.2
 
 - Use `dts-buddy` to generate type declarations ([#78](https://github.com/Rich-Harris/code-red/pull/78))
