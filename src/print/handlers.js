@@ -1312,42 +1312,57 @@ const handlers = {
 			chunks.push(c('?.'));
 		}
 
-		const args = node.arguments.map((arg) => {
+		let has_inline_comment = false;
+		let arg_chunks = [];
+		outer: for (const arg of node.arguments) {
 			const chunks = [];
 			while (state.comments.length) {
 				const comment = state.comments.shift();
-				chunks.push(c(comment.type === 'Block'
-					? `/*${comment.value}*/ `
-					: `//${comment.value}`));
+				if (comment.type === 'Line') {
+					has_inline_comment = true;
+					break outer;
+				}
+				chunks.push(
+					c(
+						comment.type === 'Block'
+							? `/*${comment.value}*/ `
+							: `//${comment.value}`
+					)
+				);
 			}
 			push_array(chunks, handle(arg, state));
-			return chunks;
-		});
+			arg_chunks.push(chunks);
+		}
 
-		const multiple_lines = args.slice(0, -1).some(has_newline); // TODO or length exceeds 80
+		const multiple_lines =
+			has_inline_comment || arg_chunks.slice(0, -1).some(has_newline); // TODO or length exceeds 80
 		if (multiple_lines) {
 			// need to handle args again. TODO find alternative approach?
-			const args = node.arguments.map((arg) => {
-				const chunks = [];
-				while (state.comments.length) {
-					const comment = state.comments.shift();
-					chunks.push(c(comment.type === 'Block'
-						? `/*${comment.value}*/ `
-						: `//${comment.value}`));
-				}
-				push_array(chunks, handle(arg, {
+			const args = node.arguments.map((arg, i) => {
+				const chunks = handle(arg, {
 					...state,
 					indent: `${state.indent}\t`
-				}));
+				});
+				if (i < node.arguments.length - 1) chunks.push(c(','));
+				while (state.comments.length) {
+					const comment = state.comments.shift();
+					chunks.push(
+						c(
+							comment.type === 'Block'
+								? ` /*${comment.value}*/ `
+								: ` //${comment.value}`
+						)
+					);
+				}
 				return chunks;
 			});
 
 			chunks.push(c(`(\n${state.indent}\t`));
-			push_array(chunks, join(args, c(`,\n${state.indent}\t`)));
+			push_array(chunks, join(args, c(`\n${state.indent}\t`)));
 			chunks.push(c(`\n${state.indent})`));
 		} else {
 			chunks.push(c('('));
-			push_array(chunks, join(args, c(', ')));
+			push_array(chunks, join(arg_chunks, c(', ')));
 			chunks.push(c(')'));
 		}
 
