@@ -4,7 +4,10 @@
 	"version": "1.0.3",
 	"repository": "Rich-Harris/code-red",
 	"exports": {
-		"import": "./src/index.js"
+		".": {
+			"types": "./types/index.d.ts",
+			"import": "./src/index.js"
+		}
 	},
 	"type": "module",
 	"types": "types/index.d.ts",
