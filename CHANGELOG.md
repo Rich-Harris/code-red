@@ -1,5 +1,9 @@
 # code-red changelog
 
+## 1.0.4
+
+- Add `types` to `pkg.exports` ([#83](https://github.com/Rich-Harris/code-red/pull/83))
+
 ## 1.0.3
 
 - Fix inline comments in function arguments ([#79](https://github.com/Rich-Harris/code-red/pull/79))

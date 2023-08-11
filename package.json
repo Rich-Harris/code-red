@@ -1,7 +1,7 @@
 {
 	"name": "code-red",
 	"description": "code-red",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"repository": "Rich-Harris/code-red",
 	"exports": {
 		".": {
