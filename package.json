@@ -20,15 +20,15 @@
 	},
 	"license": "MIT",
 	"dependencies": {
-		"@jridgewell/sourcemap-codec": "^1.4.14",
-		"@types/estree": "^1.0.0",
-		"acorn": "^8.8.2",
+		"@jridgewell/sourcemap-codec": "^1.4.15",
+		"@types/estree": "^1.0.1",
+		"acorn": "^8.10.0",
 		"estree-walker": "^3.0.3",
 		"periscopic": "^3.1.0"
 	},
 	"devDependencies": {
-		"@types/node": "^18.14.6",
-		"dts-buddy": "^0.1.4",
+		"@types/node": "^20.4.10",
+		"dts-buddy": "^0.1.9",
 		"eslump": "^3.0.0",
 		"uvu": "^0.5.6"
 	},
